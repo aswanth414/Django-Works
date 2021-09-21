@@ -1,0 +1,91 @@
+{% load i18n %}
+{% load l10n %}
+{% localize off %}
+<style media="screen">
+  .filter-box .row > div
+  { padding-left:15px ; padding-right:0px;}
+</style>
+<div class="modal fade" id="modal-container-details">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close " data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">{% trans 'View Container Details' %}</h4>
+            </div>
+            <div class="modal-body">
+                <!-- Success/Error -->
+
+                <form class="form-horizontal" method="post">
+                {% csrf_token %}
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <div class="box-body">
+                               <button id="container_export" data-url="{% url 'logisticsexport:container-export' %}" type="button" class="btn btn-info btn-sm"><span class="glyphicon glyphicon-export"></span>{% trans 'Export' %}</button>
+
+                            </div>
+                            <ul class="list-error">
+                            </ul>
+                            <div class="box-body alert-boxes" >
+                                <div class="alert alert-danger alert-dismissible">
+                                    <button type="button" class="close close-alert" aria-hidden="true">&times;</button>
+                                    <i class="icon fa fa-ban"></i> <span class="alert-msg"></span>
+                                </div>
+                                <div class="alert alert-info alert-dismissible">
+                                    <button type="button" class="close close-alert" data-dismiss="alert" aria-hidden="true">&times;</button>
+                                    <i class="icon fa fa-info"></i>
+                                </div>
+                                <div class="alert alert-warning alert-dismissible">
+                                    <button type="button" class="close close-alert" data-dismiss="alert" aria-hidden="true">&times;</button>
+                                    <i class="icon fa fa-warning"></i>
+                                </div>
+                                <div class="alert alert-success alert-dismissible">
+                                    <button type="button" class="close close-alert" data-dismiss="alert" aria-hidden="true">&times;</button>
+                                    <i class="icon fa fa-check"></i> <span class="alert-msg"></span>
+                                </div>
+                            </div>
+                            <!-- /.box -->
+                            <div class="box">
+                                <div class="box-body table-responsive vs-md">
+                                    <table id="container_table" class="table table-hover details-table" style="width:1300px;">
+                                        <thead>
+                                            <tr>
+                                                <th>{% trans 'Sl No.' %}</th>
+                                                <th>{% trans 'Container No' %}</th>
+                                                <th>{% trans 'Seal No' %}</th>
+                                                <th>{% trans 'Container Type' %}</th>
+                                                <th>{% trans 'Cont. Tare' %}</th>
+                                                <th>{% trans 'Nett Wt' %}</th>
+                                                <th>{% trans 'Gross Wt' %}</th>
+                                                <th>{% trans 'SOC' %}</th>
+                                                <th>{% trans 'Genset' %}</th>
+                                                <th>{% trans 'Fuel Supplied' %}</th>
+                                                <th>{% trans 'Drop Off' %}</th>
+                                                <th>{% trans 'Drop Off Pending' %}</th>
+                                                <th>{% trans 'Container Depot' %}</th>
+                                                <th>{% trans 'Grounding Instr. Ref' %}</th>
+                                                <th>{% trans 'Last DO Validity Date' %}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <!-- /.box-body -->
+                            </div>
+                            <!-- /.box -->
+                        </div>
+                        <!-- /.col -->
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success " data-dismiss="modal"><i class="fa fa-check-circle-o"></i>{% trans 'Done' %}</button>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+</div>
+{% endlocalize %}

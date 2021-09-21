@@ -1,0 +1,1613 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+{% load i18n %}
+{% load order_tags %}
+{% block page_title %}Ripples | FMS - Logistics Export Orders{% endblock %}
+
+
+{% block extra_style %}
+
+    <style>
+       .alert-boxes{display:none;}
+        tbody tr:hover{cursor:pointer;}
+        td,th {white-space:nowrap;}
+        /*.list-error li{display:none;}*/
+        /*label {
+            font-weight: normal !important;
+        }*/
+        boldlabel {
+            font-weight: normal !important;
+        }
+        .datepicker {
+            z-index: 2000 !important;
+        }
+    </style>
+{% endblock %}
+
+
+{% block dashboard_content  %}
+<div class="content-wrapper">
+    <section class="content-header">
+        <h1>{% trans "Logistics Export Orders" %}</h1>
+        <ol class="breadcrumb">
+            <li><a href="{% url 'dashboard:home' %}"><i class="fa fa-dashboard"></i> {% trans "Home" %}</a></li>
+            <li class="active">{% trans "Logistics Exports Orders" %}</li>
+        </ol>
+    </section>
+    {% if messages %}
+        <div class="box-body" style=" margin-left: 4px; width: 97%; display: block;">
+        {% for message in messages %}
+            <div class="alert alert-dismissible {% if message.tags %} {{ message.tags }} {% endif %}" style="display: block">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+            <i class="icon fa "></i><span class="alert-msg"></span>
+            </div>
+            <script>
+            window.setTimeout(function () {
+                $(".alert").fadeTo(500, 0).slideUp(500, function () {
+                    $(this).remove();
+                });
+            }, 4000);
+            </script>
+        {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="box-body alert-boxes" >
+
+    </div>
+    <section class="content-header">
+        <div class="pull-left col-xs-8 col-sm-10" style="padding: 0px;">
+            {% get_action_access_list 87 as access_list %}
+            {% if 'Edit' in access_list %}
+            <button type="button" class="btn btn-info" id="edit_entry"><span class="glyphicon glyphicon-edit">
+            </span> {% trans "Edit" %}</button>
+            {% endif %}
+
+            {% if 'Export' in access_list %}
+            <button type="button" id="export_order" class="btn btn-info"><span class="glyphicon glyphicon glyphicon-export">
+            </span> {% trans "Export" %}</button>
+            {% endif %}
+
+           <!-- {% if 'Approve' in access_list %}
+                <button type="button" class="btn btn-info" data-toggle="modal" id="id_approve">
+                    <span class="glyphicon glyphicon glyphicon-check"></span> {% trans "Approve" %}
+                </button>
+            {% endif %} -->
+
+            {% if 'Cancel' in access_list %}
+                <button type="button" class="btn btn-warning" data-toggle="modal" id="id_cancel">
+                    <span class="glyphicon glyphicon glyphicon-remove"></span> {% trans "Cancel" %}
+                </button>
+            {% endif %}
+
+            <div class="btn-group">
+                <button type="button" class="btn btn-info">{% trans "Update Dates" %}</button>
+                <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                    <span class="caret"></span>
+                    <span class="sr-only">Toggle Dropdown</span>
+                </button>
+                <ul class="dropdown-menu" role="menu">
+                    {% if 'Booking Received Date' in access_list %}
+                    <li><a style="cursor:pointer;" id="id_update_book_date" data-toggle="modal" data-target="">{% trans "Booking Received Date" %}</a></li>
+                    {% endif %}
+                    {% if 'Submitted Forwarding Agent' in access_list %}
+                    <li><a style="cursor:pointer;" id="id_update_submitted_fa" data-toggle="modal" data-target="">{% trans "Submitted Forwarding Agent " %}</a></li>
+                    {% endif %}
+                    {% if 'Cleared Forwarding Agent' in access_list %}
+                    <li><a style="cursor:pointer;" id="id_update_cleared_fa" data-toggle="modal" data-target="">{% trans "Cleared Forwarding Agent" %}</a></li>
+                    {% endif %}
+                    {% if 'NDE Taxed' in access_list %}
+                    <li><a style="cursor:pointer;" id="id_update_doc_taxed" data-toggle="modal" data-target="">{% trans "NDE Taxed" %}</a></li>
+                    {% endif %}
+                    {% if 'W7' in access_list %}
+                    <li><a style="cursor:pointer;" id="id_w7_update" data-toggle="modal" data-target="">{% trans "W7 Update Date & Time" %}</a></li>
+                    {% endif %}
+                    {% if 'T8' in access_list %}
+                    <li><a style="cursor:pointer;" id="id_T8_update" data-toggle="modal" data-target="">{% trans "T8 Update Date & Time" %}</a></li>
+                    {% endif %}
+                    {% if 'Update Kudumba' in access_list %}
+                    <li><a style="cursor:pointer;" id="id_update_kudumba" data-toggle="modal" data-target="">{% trans "Update Kudumba " %}</a></li>
+                    {% endif %}
+                    {% if 'Update Port Booking' in access_list %}
+                    <li><a style="cursor:pointer;" id="id_update_port_booking" data-toggle="modal" data-target="">{% trans "Update Port Booking " %}</a></li>
+                    {% endif %}
+                    {% if 'Update Stack Order' in access_list %}
+                    <li><a style="cursor:pointer;" id="id_update_stack" data-toggle="modal" data-target="">{% trans "Update StackOrder " %}</a></li>
+                    {% endif %}
+                    {% if 'Update SOB' in access_list %}
+                    <li><a style="cursor:pointer;" id="id_update_sob" data-toggle="modal" data-target="">{% trans "Update SOB " %}</a></li>
+                    {% endif %}
+                    <!--<li><a style="cursor:pointer;" id="id_update_duty_confirmed">{% trans "Duty Confirmed" %}</a></li>
+                    <li><a style="cursor:pointer;" id="id_update_w7" >{% trans "W7" %}</a></li>
+                    <li><a style="cursor:pointer;" id="id_update_t8">{% trans "T8" %}</a></li>
+                    <li><a style="cursor:pointer;" id="id_update_sad" data-toggle="modal" data-target="">{% trans "SAD" %}</a></li>
+                    <li><a style="cursor:pointer;" id="id_ready_to_load_on" data-toggle="modal" data-target="">{% trans "Ready to Load" %}</a></li>-->
+
+                </ul>
+            </div>
+            <div class="btn-group">
+                <button type="button" class="btn btn-info">{% trans "More Actions" %}</button>
+                <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                    <span class="caret"></span>
+                    <span class="sr-only">Toggle Dropdown</span>
+                </button>
+                <ul class="dropdown-menu" role="menu">
+                    {% if 'Delete SOB' in access_list %}
+                    <li><a style="cursor:pointer;" id="id_del_sob" data-toggle="modal" data-target="">{% trans "Delete SOB" %}</a></li>
+                    {% endif %}
+                    {% if 'View Container Details' in access_list %}
+                    <li><a style="cursor:pointer;" id="id_view_containers" data-toggle="modal" data-target="">{% trans "View Container Details" %}</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+            {% if 'View Details' in access_list %}
+            <button type="button" id="id_exports_view" class="btn btn-info" data-toggle="modal" data-target=""><span class="glyphicon glyphicon glyphicon-list">
+            </span> {% trans "View Details" %}</button>
+            {% endif %}
+          <!--   <div class="btn-group">
+                <button type="button" class="btn btn-info">{% trans "More Actions" %}</button>
+                <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                    <span class="caret"></span>
+                    <span class="sr-only">Toggle Dropdown</span>
+                </button>
+                <ul class="dropdown-menu" role="menu">
+                    {% if 'Customer Rate' in access_list %}
+                    <li><a style="cursor:pointer;" id="update_customerrate" data-toggle="modal" data-target="">{% trans "Update Customer Rate" %}</a></li>
+                    {% endif %}
+
+                </ul>
+            </div> -->
+            <!-- {% if 'View Details' in access_list %}
+            <button type="button" id="id_order_view" class="btn btn-info" data-toggle="modal" data-target=""><span class="glyphicon glyphicon glyphicon-list">
+            </span> {% trans "View Details" %}</button>
+            {% endif %}
+ -->
+        </div>
+
+        <div class="pull-right">
+            {% if 'Add' in access_list %}
+            <a href="{% url 'logisticsexport:add-export-order' %}">
+                <button type="button" class="btn btn-success" ><i class="fa fa-plus"></i>{% trans "Add New" %}</button>
+            </a>
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="content">
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="box box-primary">
+                    <div class="box-body filter-box">
+                        <div class="row element-space">
+                            <div class="col-xs-6 col-sm-4 col-md-2" style="padding-left: 15px;">
+                                <div class="filter-lbl">{% trans "Order No" %}</div>
+                                <input id="id_orderno" type="text" class="auto-save form-control" placeholder="{% trans 'Order No' %}">
+                            </div>
+                            <div class="col-xs-6 col-sm-4 col-md-2">
+                                <div class="filter-lbl">{% trans "Customer" %}</div>
+                                <div class="input-group input-group-sm">
+                                    <input id="id_customercode" name="customercode" class="" value="" type="hidden">
+                                    <input id="id_customer_name" type="text" class="form-control">
+                                    <div class="input-group-btn">
+                                        <button id="id_customer_search" type="button" class="btn btn-default entity_search mb-0" data-entity="customer" ><i class="fa fa-search"></i></button>
+                                    </div>
+                                    <!-- /btn-group -->
+                                </div>
+                            </div>
+
+                            <div class="col-xs-6 col-sm-4 col-md-2 city-select clear-sm">
+                                <div class="filter-lbl">{% trans "Commodity" %}</div>
+                                <select id="id_commodity" class="form-control">
+                                    <option value="">{% trans "COMMODITY" %}</option>
+                                    <!--  for commodity in commodities
+                                    <option value="commodity.commoditycode">commodity.commodityname</option>
+                                     endfor  -->
+                                </select>
+                            </div>
+
+                            <div class="col-xs-6 col-sm-4 col-md-2 city-select">
+                                <div class="filter-lbl">{% trans "Origin" %}</div>
+                                <select id="origin_search" class="form-control">
+                                    <option value="" selected>{% trans "ORIGIN" %}</option>
+                                    <!--  if locations
+                                     for location in locations
+                                        <option value="location.locationcode">location.locationname</option>
+                                     endfor
+                                     endif  -->
+                                </select>
+                            </div>
+                             <div class="col-xs-6 col-sm-4 col-md-2  city-select">
+                                <div class="filter-lbl">{% trans "Destination" %}</div>
+                                <select id="dest_search" class="form-control">
+                                    <option value="" selected>{% trans "DESTINATION" %}</option>
+                                    <!-- {if locations
+                                    for location in locations
+                                        <option value="location.locationcode">location.locationname</option>
+                                     endfor
+                                     endif  -->
+                                </select>
+                            </div>
+
+
+                           
+                            <div class="col-xs-6 col-md-2 col-sm-4 ">
+                                <div class="filter-lbl">{% trans "Cargo Type" %}</div>
+                                <select id="id_cargotype" class="form-control">
+                                    <option value="">{% trans "Cargo Type" %}</option>
+                                    {% for cargo in cargos %}
+                                    <option value="{{cargo.cargotypecode}}">{{cargo.cargotypename}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+
+                            <div class="col-xs-6 col-sm-4 col-md-2  adv_search">
+                                <div class="filter-lbl">{% trans "Status" %}</div>
+                                <select id="id_status" class="form-control">
+                                    <option value="">{% trans "Status" %}</option>
+                                    {% for status in statuses %}
+                                    <option value="{{status.statuscode}}">{{status.statusdescription}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                           
+                            <div class="col-xs-12 col-sm-8 col-md-3 col-lg-3  ">
+                                <div class="filter-lbl">{% trans "Order Date" %}</div>
+                                <div class="form-group w-45 mr-2p">
+                                    <div class="input-group date">
+                                        <div class="input-group-addon">
+                                            <i class="fa fa-calendar"></i>
+                                        </div>
+                                        <input type="text" id="date_from" data-date-format="dd/mm/yyyy" class="form-control pull-right dates" placeholder="{% trans 'From' %}" value="{{ month_before|date:"d/m/Y" }}">
+                                    </div>
+                                    <!-- /.input group -->
+                                </div>
+                                <div class="form-group w-45">
+                                    <div class="input-group date">
+                                        <div class="input-group-addon">
+                                            <i class="fa fa-calendar"></i>
+                                        </div>
+                                        <input type="text" id="date_to" data-date-format="dd/mm/yyyy" class="form-control pull-right dates" placeholder="{% trans "To" %}" value="{{ today|date:"d/m/Y" }}">
+                                    </div>
+                                    <!-- /.input group -->
+                                </div>
+                            </div>
+                            
+
+
+                        </div>
+                        <div class="row element-space">
+                                <div class="col-xs-6 col-sm-5 col-md-4 col-lg-4">
+                                    <div class="filter-lbl">&nbsp;</div>
+                                    <button type="button" id="id_search_btn" class="btn btn-primary btn-sm">
+                                        <span class="glyphicon glyphicon-search"></span> {% trans "Search" %}</button>
+                                    <button id="clear_search" type="button" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-check"></span> {% trans "Clear" %}</button>
+                                </div>
+                               <!--  <div class="col-xs-6 col-md-2 style_adv" id="advance_search" >
+                                    <div class="filter-lbl">&nbsp;</div>
+                                    <button type="button" id="adv_srch" class="btn btn-primary btn-sm view_more">
+                                    <span class="fa fa-search-plus fa-lg"></span> {% trans "More Search" %}</button>
+
+                                </div> -->
+                            </div>
+                    </div>
+                </div>
+
+                <div class="box">
+                    <div class="box-header">
+                        <div class="box-tools">
+                            <!-- <small><i class="fa fa-circle icon-green"></i>&nbsp;&nbsp;{% trans 'Approved' %}</small>
+                            <small><i class="fa fa-circle icon-yellow"></i>&nbsp;&nbsp;{% trans 'Not Approved' %}</small>
+                            <small><i class="fa fa-circle icon-red"></i>&nbsp;&nbsp;{% trans 'Cancelled' %}</small> -->
+                        </div>
+                    </div>
+                    <div class="box-body table-responsive">
+                        <table id="id_logisticexport_table"  class="details-table">
+                            <thead>
+                                <tr>
+                                    <th>Order Full Number</th>
+                                    <th>{% trans "Order Number" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th>{% trans "Order Date" %}</th>
+                                    <th>{% trans "Order Owner" %}</th>
+                                    <th>{% trans "Customer" %}</th>
+                                    <th>{% trans "Consignee" %}</th>
+                                    <th>{% trans "Invoice Party" %}</th>
+                                    <th>{% trans "Shipper Name" %}</th>
+                                    <th>{% trans "Client Ref" %}</th>
+                                    <th>{% trans "Origin" %}</th>
+                                    <th>{% trans "Destination" %}</th>
+                                    <th>{% trans "Loading Point" %}</th>
+                                    <th>{% trans "Offloading point" %}</th>
+                                    <th>{% trans '20"' %}</th>
+                                    <th>{% trans '40"' %}</th>
+                                    <th>{% trans "Tonnage (MT)" %}</th>
+                                    <th>{% trans "Cargo Type" %}</th>
+                                    <th>{% trans "Shipping Line" %}</th>
+                                    <th>{% trans "Clearing Agent" %}</th>
+                                    <th>{% trans "Port Agent" %}</th>
+                                    <th>{% trans "Created User" %}</th>
+                                    <th>{% trans "Remarks" %}</th>
+                                    <th>{% trans "Commodity" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- /.box-body -->
+
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block modal %}
+
+{% include 'dashboard/logistics/logistics_export/modals/cancel_logistic_export.html' %}
+{% include 'dashboard/logistics/logistics_export/modals/search_customer.html' %}
+{% include 'dashboard/logistics/logistics_export/modals/update_doc_received.html' %}
+{% include 'dashboard/logistics/logistics_export/modals/update_submitted_fa.html' %}
+{% include 'dashboard/logistics/logistics_export/modals/update_cleared_fa.html' %}
+{% include 'dashboard/logistics/logistics_export/modals/update_nde_taxed.html' %}
+{% include 'dashboard/logistics/logistics_export/modals/update_w7_date.html' %}
+{% include 'dashboard/logistics/logistics_export/modals/update_t8_date.html' %}
+{% include 'dashboard/logistics/logistics_export/modals/update_kudumba.html' %}
+{% include 'dashboard/logistics/logistics_export/modals/update_portbooking.html' %}
+{% include 'dashboard/logistics/logistics_export/modals/update_sob.html' %}
+{% include 'dashboard/logistics/logistics_export/modals/update_stack_order.html' %}
+{% include 'dashboard/logistics/logistics_export/modals/viewcontainerdetails.html' %}
+{% include 'dashboard/logistics/logistics_export/modals/delete_sob.html' %}
+{% include 'dashboard/logistics/logistics_export/modals/modal_view_details.html' %}
+
+{% endblock %}
+
+{% block extra_script %}
+<!-- DataTables -->
+<script src="{% static 'bower_components/datatables.net/js/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js' %}"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.js"></script>
+<link rel="stylesheet" href="{% static 'dist/css/sweetalert2.min.css' %}">
+<script src="{% static 'dist/js/sweetalert2.min.js' %}"></script>
+
+
+<!-- AdminLTE App -->
+<!-- AdminLTE for demo purposes -->
+
+<!-- page script -->
+<script src="{% static 'plugins/iCheck/icheck.min.js' %}"></script>
+
+<script>
+
+    $('.dates').datepicker({
+        autoclose: true
+    })
+
+
+    $('.updates').datepicker({
+        autoclose: true,
+    })
+    $(".updates").datepicker().datepicker("setDate", new Date());
+
+//Data tables
+
+    export_order_list = $('#id_logisticexport_table').DataTable({
+        'order':[[ 1, 'asc' ]],
+        'paging'      : true,
+        'lengthChange': true,
+        'searching'   : false,
+        'ordering'    : true,
+        'info'        : true,
+        'autoWidth'   : false,
+        "processing": true,
+        "stateSave": true,
+        "serverSide": false,
+        "pageLength": 10,
+        "columnDefs": [
+            {
+                "targets": [0 ],
+                "visible": false,
+                "searchable": false
+            },
+
+            {
+                "targets":[0],
+                "orderable":false
+            }
+
+        ],
+
+
+        "ajax":{
+            "url" :  "{% url 'logisticsexport:export-grid' %}?&date_from="+ $('#date_from').val() +"&date_to=" + $('#date_to').val(),
+            "type":  "POST"
+        }
+    });
+
+    var export_data = null;
+    var SELECTED_EXPORT = "";
+    var SELECTED_CUSTOMERCODE = "";
+    var SELECTED_CUSTOMERNAME = "";
+    var SELECTED_CONSIGNEECODE = "";
+    var SELECTED_CONSIGNEENAME = "";
+    var SELECTED_INVOICE_PARTY_CODE = "";
+    var entity_table = null;
+    var entity = "";
+
+    var orderno = "";
+    var customercode = "";
+    var origin = "";
+    var destination = "";
+    var commodity = "";
+    var status = "";
+    var cargotype = "";
+    var date_from = "";
+    var date_to = "";
+
+    $('#port_free_days_list_search').click(function(e){
+        SELECTED_EXPORT = "";
+        port_free_days_data = [];
+        export_order_list.ajax.url("{% url 'logisticsexport:export-grid' %}?" +
+                    "&container_type=" + $('#id_container_type').val() +
+                    ""
+        ).load()
+    });
+
+
+    $('#id_logisticexport_table').on('click', 'tbody tr', function(){
+      const this_row = $(this);
+      this_row.siblings().removeClass('bg-active-row');
+      this_row.addClass('bg-active-row');
+      SELECTED_EXPORT = export_order_list.row(this).data()[0];
+      export_data = export_order_list.row(this).data();
+      console.log(SELECTED_EXPORT)
+<!--      alert(SELECTED_EXPORT)-->
+    });
+
+
+
+    $('.entity_search').click(function(e){
+        entity = $(this).attr('data-entity');
+        e.preventDefault();
+        customer_input = $("#id_"+entity+"_name").val();
+        $("#"+entity+"_search_modal #"+entity+"_search_input").val( customer_input );
+        entity_table = $('#'+entity+'_list_table').DataTable({
+            "order": [[ 0, 'asc' ]],
+            'paging'      : true,
+            'lengthChange': false,
+            'searching'   : false,
+            'ordering'    : true,
+            'info'        : true,
+            'autoWidth'   : false,
+            "processing": true,
+            'rowId': 6,
+            "serverSide": true,
+            "pageLength": 10,
+            "columnDefs": [
+                {
+                    "targets": [ 6 ],
+                    "visible": false,
+                    "searchable": false
+                }
+            ],
+            "ajax": {
+                "url":"{% url 'order_quotations:customers-list' %}?entity="+entity+"&search="+customer_input,
+                "type": "POST"
+            }
+        });
+
+        $('#'+entity+'_search_modal').modal({
+            backdrop: 'static',
+            keyboard: false
+        });
+
+    });
+
+    $('.entity_search_btn').click(function(e){
+        entity_table.ajax.url("{% url 'order_quotations:customers-list' %}?entity="+entity+"&search="+$('#'+entity+'_search_input').val()).load()
+    });
+
+    $('.entity_list_table').on('click', 'tbody tr', function(){
+      const this_row = $(this);
+      this_row.siblings().removeClass('bg-active-row');
+      this_row.addClass('bg-active-row');
+      if(entity=='customer')
+      {
+        SELECTED_CUSTOMERCODE = this_row.attr("id");
+        SELECTED_CUSTOMERNAME = entity_table.row( this ).data()[0];
+      }
+      else if(entity=='consignee')
+      {
+          SELECTED_CONSIGNEECODE = this_row.attr("id");
+          SELECTED_CONSIGNEENAME = entity_table.row( this ).data()[0];
+      }
+      else if(entity=='invoice_party')
+      {
+         SELECTED_INVOICE_PARTY_CODE =  this_row.attr("id");
+      }
+
+    });
+
+    $('.select_entity').click(function(e){
+        var code = "";
+        if(entity=='customer')
+        {
+            code = SELECTED_CUSTOMERCODE;
+        }
+        else if(entity=='consignee')
+        {
+            code = SELECTED_CONSIGNEECODE;
+        }
+        else if(entity=='invoice_party')
+        {
+            code = SELECTED_INVOICE_PARTY_CODE;
+        }
+
+        $('#id_'+entity+'_name').val($('#'+entity+'_list_table #'+code).find("td:first").text());
+        $('#id_'+entity+'code').val(code);
+        entity_table.clear().destroy();
+    });
+
+    $(".close_search_entity").click(function (e) {
+        entity_table.clear().destroy();
+    });
+
+
+    $("#export_order").click(function (e) {
+
+        export_url = "{% url 'logisticsexport:logisticsexports-export' %}?orderno=" + orderno +
+                        "&customercode=" + customercode +
+                        "&origin=" + origin +
+                        "&destination=" + destination +
+                        "&commodity=" + commodity +
+                        "&status=" + status +
+                        "&cargotype=" + cargotype +
+                        "&date_from=" + date_from +
+                        "&date_to=" + date_to + ""
+
+        window.location.assign(export_url);
+    });
+
+
+    // search in grid
+    $('#id_search_btn').click(function(e){
+        orderno = $('#id_orderno').val();
+
+        if ($('#id_customer_name').val() != SELECTED_CUSTOMERNAME) {
+          customercode = '';
+        } else{
+          customercode = $('#id_customercode').val();
+        }
+
+        origin = $('#origin_search').val();
+        // loadingpoint = $('#id_loadingpoint').val();
+        destination = $('#dest_search').val();
+        // offloadingpoint = $('#id_offloadingpoint').val();
+        commodity = $('#id_commodity').val();
+        status = $('#id_status').val();
+        cargotype = $('#id_cargotype').val();
+        date_from = $('#date_from').val();
+        date_to = $('#date_to').val() ;
+
+         export_order_list.ajax.url("{% url 'logisticsexport:export-grid' %}?" +
+                        "orderno=" + orderno +
+                        "&customercode=" + customercode +
+                        "&origin=" + origin +
+                        "&destination=" + destination +
+                        "&commodity=" + commodity +
+                        "&status=" + status +
+                        "&cargotype=" + cargotype +
+                        "&date_from=" + date_from +
+                        "&date_to=" + date_to +
+                        "&live=" + $("input[name='rad_orders']:checked").val()
+        ).load()
+
+    });
+
+    // search clear
+    $('#clear_search').on('click', function (e) {
+      // removeFromLocal();
+        location.href="{% url 'logisticsexport:export-list' %}";
+    });
+
+    $('#origin_search').select2({
+            ajax: {
+                url: '/dashboard/locations_select/?locationcode = locationcode'
+            }
+    });
+
+
+    $('#id_commodity').select2({
+            ajax: {
+                url: '/dashboard/commodity_select/'
+            }
+    });
+
+    $('#dest_search').select2({
+            ajax: {
+                url: '/dashboard/locations_select/'
+            }
+    });
+
+
+
+
+
+
+    $('#edit_entry').click(function(e){
+        if(SELECTED_EXPORT == '')
+        {
+            showalert("{% trans 'Please select an Order' %}", 'danger');
+        }
+        else
+        {
+            window.location.href = "{% url 'logisticsexport:edit-export-order' %}"+"?edit_orderreference="+SELECTED_EXPORT;
+        }
+    });
+
+     $('#change_destination').click(function(e){
+        if(order_ref == '')
+        {
+            showalert("{% trans 'Please select an Order' %}", 'danger');
+        }
+        else if(tripdetailsfound == 'N')
+        {
+            showalert("{% trans 'Trip details not found.Please use Order edit Option' %}", 'danger');
+        }
+        else
+        {
+            $('#id_changedestination_orderreference').val(order_ref);
+            $('#modal-change-destination').modal({
+                backdrop: 'static',
+                keyboard: false
+            });
+        }
+    });
+
+
+
+
+     // cancel
+
+    $('#id_cancel').on('click', function () {
+        if(SELECTED_EXPORT == '')
+        {
+            showalert("{% trans 'Please select an Order' %}", 'danger');
+        }
+        else
+        {
+            $('#id_cancel_reason').val();
+            $('#cancel_btn').attr('disabled',true);
+             $('#id_model_cancel_logorder').modal({
+                backdrop: 'static',
+                keyboard: false
+            });
+        }
+    });
+
+    $('#id_cancel_reason').keyup(function(){
+        if($(this).val().length !=0 && $(this).val().trim() !='')
+            $('#cancel_btn').attr('disabled', false);
+        else
+            $('#cancel_btn').attr('disabled',true);
+    });
+
+
+    $('#cancel_btn').on('click', function () {
+        var url = "{% url 'logisticsexport:logisticsexports-cancel' %}";
+        data = {'order_ref':SELECTED_EXPORT,
+                'reason':$('#id_cancel_reason').val()}
+        $.post(url, data, function (data) {
+            if (data.status == 1) {
+                showalert('{% trans "Order entry Cancelled successfully!" %}', 'success');
+            }
+            if (data.status == -1) {
+                if (data.message)
+                {
+                    showalert(data.message, 'danger');
+                }
+                else
+                {
+                    showalert('{% trans "Some error occurred while cancelling order entry!" %}', 'danger');
+                }
+            }
+            $('#id_model_cancel_logorder').modal('toggle');
+            export_order_list.ajax.reload();
+            SELECTED_EXPORT      = '';
+            export_data  = null;
+        });
+    });
+
+
+
+    // update dates
+
+   $("#id_update_book_date").on('click',function(){
+        if(SELECTED_EXPORT == '')
+        {
+            showalert("{% trans 'Please select an Order' %}", 'danger');
+        }
+        else
+        {
+            var url = "{% url 'logisticsexport:logisticsexports_book_rec_date' %}";
+            var data = {'order_ref':SELECTED_EXPORT,'update_type':'DOCUMENT_RECEIVED'}
+            $.get(url, data, function (data) {
+                if(data.status==1){
+                    $('#modal_book_received').modal({
+                        backdrop: 'static',
+                        keyboard: false
+                    });
+                }
+                else{
+                    if(data.message){
+                        // showalert(data.message, 'danger');
+                        Swal.fire({
+                                title: '',
+                                icon: 'warning',
+                                html: data.message,
+                                allowOutsideClick: true
+                            });
+                    }
+                }
+            });
+        }
+   });
+
+   $('#id_btn_book_rec').on('click', function () {
+        var url = "{% url 'logisticsexport:logisticsexports_book_rec_date' %}";
+        data = {'order_ref':SELECTED_EXPORT,
+                'update_type':'DOCUMENT_RECEIVED',
+                'datetoupdate':$('#doc_date').val()}
+        $.post(url, data, function (data) {
+            if (data.status == 1) {
+                showalert('{% trans "Date Updated successfully!" %}', 'success');
+                $('#modal_book_received').modal('toggle');
+                export_order_list.ajax.reload();
+                SELECTED_EXPORT = '';
+                export_data  = null;
+            }
+            if (data.status == -1) {
+                $('#modal_book_received').modal('toggle');
+                if (data.message)
+                {
+                    showalert(data.message, 'danger');
+                }
+                else
+                {
+                    showalert('{% trans "Some error occurred !" %}', 'danger');
+                }
+            }
+        });
+   });
+
+
+
+    //NDE Taxed
+
+   $("#id_update_doc_taxed").on('click',function(){
+        if(SELECTED_EXPORT == '')
+        {
+            showalert("{% trans 'Please select an Order' %}", 'danger');
+        }
+        else
+        {
+            var url = "{% url 'logisticsexport:logisticsexports_nde_taxed_date' %}";
+            var data = {'order_ref':SELECTED_EXPORT,'update_type':'NDE_TAXED'}
+            $.get(url, data, function (data) {
+                if(data.status==1){
+                    $('#modal_nde_taxed').modal({
+                        backdrop: 'static',
+                        keyboard: false
+                    });
+                }
+                else{
+                    if(data.message){
+                        // showalert(data.message, 'danger');
+                        Swal.fire({
+                                title: '',
+                                icon: 'warning',
+                                html: data.message,
+                                allowOutsideClick: true
+                            });
+                    }
+                }
+            });
+        }
+   });
+
+   $('#id_btn_nde_tax').on('click', function () {
+        var url = "{% url 'logisticsexport:logisticsexports_nde_taxed_date' %}";
+        data = {'order_ref':SELECTED_EXPORT,
+                'update_type':'NDE_TAXED',
+                'datetoupdate':$('#nde_date').val()}
+        $.post(url, data, function (data) {
+            if (data.status == 1) {
+                showalert('{% trans "Date Updated successfully!" %}', 'success');
+                $('#modal_nde_taxed').modal('toggle');
+                export_order_list.ajax.reload();
+                SELECTED_EXPORT = '';
+                export_data  = null;
+            }
+            if (data.status == -1) {
+                $('#modal_nde_taxed').modal('toggle');
+                if (data.message)
+                {
+                    showalert(data.message, 'danger');
+                }
+                else
+                {
+                    showalert('{% trans "Some error occurred !" %}', 'danger');
+                }
+            }
+        });
+   });
+
+
+   //w7 update
+
+
+    $("#id_w7_update").on('click',function(){
+        if(SELECTED_EXPORT == '')
+        {
+            showalert("{% trans 'Please select an Order' %}", 'danger');
+        }
+        else
+        {
+            var url = "{% url 'logisticsexport:logisticsexports_w7_date' %}";
+            var data = {'order_ref':SELECTED_EXPORT,'update_type':'W_DATE'}
+            $.get(url, data, function (data) {
+                if(data.status==1){
+                    $('#modal_w7_update').modal({
+                        backdrop: 'static',
+                        keyboard: false
+                    });
+                }
+                else{
+                    if(data.message){
+                        // showalert(data.message, 'danger');
+                        Swal.fire({
+                                title: '',
+                                icon: 'warning',
+                                html: data.message,
+                                allowOutsideClick: true
+                            });
+                    }
+                }
+            });
+        }
+   });
+
+   $('#id_btn_w7_dte').on('click', function () {
+        var url = "{% url 'logisticsexport:logisticsexports_w7_date' %}";
+        data = {'order_ref':SELECTED_EXPORT,
+                'update_type':'W_DATE',
+                'datetoupdate':$('#w_date').val()}
+        $.post(url, data, function (data) {
+            if (data.status == 1) {
+                showalert('{% trans "Date Updated successfully!" %}', 'success');
+                $('#modal_w7_update').modal('toggle');
+                export_order_list.ajax.reload();
+                SELECTED_EXPORT = '';
+                export_data  = null;
+            }
+            if (data.status == -1) {
+                $('#modal_w7_update').modal('toggle');
+                if (data.message)
+                {
+                    showalert(data.message, 'danger');
+                }
+                else
+                {
+                    showalert('{% trans "Some error occurred !" %}', 'danger');
+                }
+            }
+        });
+   });
+
+
+
+
+   //T8 update
+
+   $("#id_T8_update").on('click',function(){
+        if(SELECTED_EXPORT == '')
+        {
+            showalert("{% trans 'Please select an Order' %}", 'danger');
+        }
+        else
+        {
+            var url = "{% url 'logisticsexport:logisticsexports_t8_date' %}";
+            var data = {'order_ref':SELECTED_EXPORT,'update_type':'T8_DATE'}
+            $.get(url, data, function (data) {
+                if(data.status==1){
+                    $('#modal_t8_update').modal({
+                        backdrop: 'static',
+                        keyboard: false
+                    });
+                }
+                else{
+                    if(data.message){
+                        // showalert(data.message, 'danger');
+                        Swal.fire({
+                                title: '',
+                                icon: 'warning',
+                                html: data.message,
+                                allowOutsideClick: true
+                            });
+                    }
+                }
+            });
+        }
+   });
+
+   $('#id_t8_date').on('click', function () {
+        var url = "{% url 'logisticsexport:logisticsexports_t8_date' %}";
+        data = {'order_ref':SELECTED_EXPORT,
+                'update_type':'T8_DATE',
+                'datetoupdate':$('#t_date').val()}
+        $.post(url, data, function (data) {
+            if (data.status == 1) {
+                showalert('{% trans "Date Updated successfully!" %}', 'success');
+                $('#modal_t8_update').modal('toggle');
+                export_order_list.ajax.reload();
+                SELECTED_EXPORT = '';
+                export_data  = null;
+            }
+            if (data.status == -1) {
+                $('#modal_t8_update').modal('toggle');
+                if (data.message)
+                {
+                    showalert(data.message, 'danger');
+                }
+                else
+                {
+                    showalert('{% trans "Some error occurred !" %}', 'danger');
+                }
+            }
+        });
+   });
+
+
+
+
+   //Kudumba UPDATE
+
+    $("#id_update_kudumba").on('click',function(){
+        if(SELECTED_EXPORT == '')
+        {
+            showalert("{% trans 'Please select an Order' %}", 'danger');
+        }
+        else
+        {
+            var url = "{% url 'logisticsexport:logisticsexports_kudumba_date' %}";
+            var data = {'order_ref':SELECTED_EXPORT,'update_type':'KUDUMBA_DATE'}
+            $.get(url, data, function (data) {
+                if(data.status==1){
+                    $('#modal_kudumba_update').modal({
+                        backdrop: 'static',
+                        keyboard: false
+                    });
+                }
+                else{
+                    if(data.message){
+                        // showalert(data.message, 'danger');
+                        Swal.fire({
+                                title: '',
+                                icon: 'warning',
+                                html: data.message,
+                                allowOutsideClick: true
+                            });
+                    }
+                }
+            });
+        }
+   });
+
+   $('#id_kudumba_updte').on('click', function () {
+        var url = "{% url 'logisticsexport:logisticsexports_kudumba_date' %}";
+        data = {'order_ref':SELECTED_EXPORT,
+                'update_type':'KUDUMBA_DATE',
+                'datetoupdate':$('#kudu_date').val()}
+        $.post(url, data, function (data) {
+            if (data.status == 1) {
+                showalert('{% trans "Date Updated successfully!" %}', 'success');
+                $('#modal_kudumba_update').modal('toggle');
+                export_order_list.ajax.reload();
+                SELECTED_EXPORT = '';
+                export_data  = null;
+            }
+            if (data.status == -1) {
+                $('#modal_kudumba_update').modal('toggle');
+                if (data.message)
+                {
+                    showalert(data.message, 'danger');
+                }
+                else
+                {
+                    showalert('{% trans "Some error occurred !" %}', 'danger');
+                }
+            }
+        });
+   });
+
+
+
+   //port booking
+
+   $("#id_update_port_booking").on('click',function(){
+        if(SELECTED_EXPORT == '')
+        {
+            showalert("{% trans 'Please select an Order' %}", 'danger');
+        }
+        else
+        {
+            var url = "{% url 'logisticsexport:logisticsexports_port_booking' %}";
+            var data = {'order_ref':SELECTED_EXPORT,'update_type':'PORT_BOOKING'}
+            $.get(url, data, function (data) {
+                if(data.status==1){
+                    $('#modal_port_booking').modal({
+                        backdrop: 'static',
+                        keyboard: false
+                    });
+                }
+                else{
+                    if(data.message){
+                        // showalert(data.message, 'danger');
+                        Swal.fire({
+                                title: '',
+                                icon: 'warning',
+                                html: data.message,
+                                allowOutsideClick: true
+                            });
+                    }
+                }
+            });
+        }
+   });
+
+   $('#id_portbook_updte').on('click', function () {
+        var url = "{% url 'logisticsexport:logisticsexports_port_booking' %}";
+        data = {'order_ref':SELECTED_EXPORT,
+                'update_type':'PORT_BOOKING',
+                'datetoupdate':$('#port_book').val()}
+        $.post(url, data, function (data) {
+            if (data.status == 1) {
+                showalert('{% trans "Date Updated successfully!" %}', 'success');
+                $('#modal_port_booking').modal('toggle');
+                export_order_list.ajax.reload();
+                SELECTED_EXPORT = '';
+                export_data  = null;
+            }
+            if (data.status == -1) {
+                $('#modal_port_booking').modal('toggle');
+                if (data.message)
+                {
+                    showalert(data.message, 'danger');
+                }
+                else
+                {
+                    showalert('{% trans "Some error occurred !" %}', 'danger');
+                }
+            }
+        });
+   });
+
+
+
+
+
+   //UPDATE SOB
+
+    $("#id_update_sob").on('click',function(){
+        if(SELECTED_EXPORT == '')
+        {
+            showalert("{% trans 'Please select an Order' %}", 'danger');
+        }
+        else
+        {
+            var url = "{% url 'logisticsexport:logisticsexports_sob_date' %}";
+            var data = {'order_ref':SELECTED_EXPORT,'update_type':'SOB_UPDATE'}
+            $.get(url, data, function (data) {
+                if(data.status==1){
+                    $('#modal_sob_update').modal({
+                        backdrop: 'static',
+                        keyboard: false
+                    });
+                }
+                else{
+                    if(data.message){
+                        // showalert(data.message, 'danger');
+                        Swal.fire({
+                                title: '',
+                                icon: 'warning',
+                                html: data.message,
+                                allowOutsideClick: true
+                            });
+                    }
+                }
+            });
+        }
+   });
+
+   $('#id_sob_updte').on('click', function () {
+        var url = "{% url 'logisticsexport:logisticsexports_sob_date' %}";
+        data = {'order_ref':SELECTED_EXPORT,
+                'update_type':'SOB_UPDATE',
+                'datetoupdate':$('#sob_doc').val()}
+        $.post(url, data, function (data) {
+            if (data.status == 1) {
+                showalert('{% trans "Date Updated successfully!" %}', 'success');
+                $('#modal_sob_update').modal('toggle');
+                export_order_list.ajax.reload();
+                SELECTED_EXPORT = '';
+                export_data  = null;
+            }
+            if (data.status == -1) {
+                $('#modal_sob_update').modal('toggle');
+                if (data.message)
+                {
+                    showalert(data.message, 'danger');
+                }
+                else
+                {
+                    showalert('{% trans "Some error occurred !" %}', 'danger');
+                }
+            }
+        });
+   });
+
+
+
+
+   //StackOrder
+
+    $("#id_update_stack").on('click',function(){
+        if(SELECTED_EXPORT == '')
+        {
+            showalert("{% trans 'Please select an Order' %}", 'danger');
+        }
+        else
+        {
+            var url = "{% url 'logisticsexport:logisticsexports_stack_order' %}";
+            var data = {'order_ref':SELECTED_EXPORT,'update_type':'STACK_ORDER'}
+            $.get(url, data, function (data) {
+                if(data.status==1){
+                    $('#modal_stack_order').modal({
+                        backdrop: 'static',
+                        keyboard: false
+                    });
+                }
+                else{
+                    if(data.message){
+                        // showalert(data.message, 'danger');
+                        Swal.fire({
+                                title: '',
+                                icon: 'warning',
+                                html: data.message,
+                                allowOutsideClick: true
+                            });
+                    }
+                }
+            });
+        }
+   });
+
+   $('#id_stack_od').on('click', function () {
+        var url = "{% url 'logisticsexport:logisticsexports_stack_order' %}";
+        data = {'order_ref':SELECTED_EXPORT,
+                'update_type':'STACK_ORDER',
+                'datetoupdate':$('#stk_date').val()}
+        $.post(url, data, function (data) {
+            if (data.status == 1) {
+                showalert('{% trans "Date Updated successfully!" %}', 'success');
+                $('#modal_stack_order').modal('toggle');
+                export_order_list.ajax.reload();
+                SELECTED_EXPORT = '';
+                export_data  = null;
+            }
+            if (data.status == -1) {
+                $('#modal_stack_order').modal('toggle');
+                if (data.message)
+                {
+                    showalert(data.message, 'danger');
+                }
+                else
+                {
+                    showalert('{% trans "Some error occurred !" %}', 'danger');
+                }
+            }
+        });
+   });
+
+
+
+
+
+
+
+    // Update SUBMITTED FA
+
+
+
+    $("#id_update_submitted_fa").on('click',function(){
+        if(SELECTED_EXPORT == '')
+        {
+            showalert("{% trans 'Please select an Order' %}", 'danger');
+        }
+        else
+        {
+            var url = "{% url 'logisticsexport:logisticsexports_sub_clr' %}";
+            var data = {'order_ref':SELECTED_EXPORT,'update_type':'SUBMITTED_AGENT'}
+            $.get(url, data, function (data) {
+                if(data.status==1){3
+                    $("#id_sub_fa").html(data.fa_option_html)
+                    $('#modal_submitted_fa').modal({
+                        backdrop: 'static',
+                        keyboard: false
+                    });
+                }
+                else{
+                    if(data.message){
+                        // showalert(data.message, 'danger');
+                        Swal.fire({
+                                title: '',
+                                icon: 'warning',
+                                html: data.message,
+                                allowOutsideClick: true
+                            });
+                    }
+                }
+            });
+        }
+    });
+
+    $('#id_btn_submitted_fa').on('click', function () {
+        var url = "{% url 'logisticsexport:logisticsexports_sub_clr' %}";
+        data = {'order_ref':SELECTED_EXPORT,
+                'update_type':'SUBMITTED_AGENT',
+                'datetoupdate':$('#sb_fa').val(),
+                'forwading_agentcode':$('#id_sub_fa').val()}
+        $.post(url, data, function (data) {
+            if (data.status == 1) {
+                showalert('{% trans "Submitted to Forwarding Agent successfully" %}', 'success');
+                $('#modal_submitted_fa').modal('toggle');
+                export_order_list.ajax.reload();
+                SELECTED_EXPORT = '';
+                export_data  = null;
+            }
+            if (data.status == -1) {
+                if (data.message)
+                {
+                    Swal.fire({
+                            title: '',
+                            icon: 'warning',
+                            html: data.message,
+                            allowOutsideClick: true
+                        });
+                }
+                else
+                {
+                    $('#modal_submitted_fa').modal('toggle');
+                    showalert('{% trans "Some error occurred !" %}', 'danger');
+                }
+            }
+        });
+    });
+
+
+
+
+
+
+    // Update CLEARED FA
+
+
+
+    $("#id_update_cleared_fa").on('click',function(){
+        if(SELECTED_EXPORT == '')
+        {
+            showalert("{% trans 'Please select an Order' %}", 'danger');
+        }
+        else
+        {
+            var url = "{% url 'logisticsexport:logisticsexports_sub_clr' %}";
+            var data = {'order_ref':SELECTED_EXPORT,'update_type':'CLEARED_AGENT'}
+            $.get(url, data, function (data) {
+                if(data.status==1){3
+                    $("#id_cleared_fa").html(data.fa_option_html);
+                    $("#cleared_sub_fa_date").datepicker('setDate', new Date(data.submitted_date));
+                    $('#modal_cleare_fa').modal({
+                        backdrop: 'static',
+                        keyboard: false
+                    });
+                }
+                else{
+                    if(data.message){
+                        // showalert(data.message, 'danger');
+                        Swal.fire({
+                                title: '',
+                                icon: 'warning',
+                                html: data.message,
+                                allowOutsideClick: true
+                            });
+                    }
+                }
+            });
+        }
+    });
+
+    $('#id_btn_cleared_fa').on('click', function () {
+        var url = "{% url 'logisticsexport:logisticsexports_sub_clr' %}";
+        data = {'order_ref':SELECTED_EXPORT,
+                'update_type':'CLEARED_AGENT',
+                'datetoupdate':$('#clr_fa').val()}
+        $.post(url, data, function (data) {
+            if (data.status == 1) {
+                showalert('{% trans "Cleared Forwarding Agent Date updated successfully" %}', 'success');
+                $('#modal_cleare_fa').modal('toggle');
+                export_order_list.ajax.reload();
+                SELECTED_EXPORT= '';
+                export_data  = null;
+            }
+            if (data.status == -1) {
+                if (data.message)
+                {
+                    Swal.fire({
+                            title: '',
+                            icon: 'warning',
+                            html: data.message,
+                            allowOutsideClick: true
+                        });
+                }
+                else
+                {
+                    $('#modal_cleare_fa').modal('toggle');
+                    showalert('{% trans "Some error occurred !" %}', 'danger');
+                }
+            }
+        });
+    });
+
+
+
+     // View Container Details
+    container_table = $('#container_table').DataTable();
+    $("#id_view_containers").on('click',function(){
+        if(SELECTED_EXPORT == '')
+        {
+            showalert("{% trans 'Please select an Order' %}", 'danger');
+        }
+        else
+        {   container_table.clear().destroy();
+            var url = "{% url 'logisticsexport:container-entry-endpoint' %}";
+            // var data = {'order_ref':SELECTED_EXPORT}
+            container_table = $('#container_table').DataTable({
+                'paging'      : true,
+                'lengthChange': false,
+                'searching'   : false,
+                'ordering'    : true,
+                'info'        : true,
+                'autoWidth'   : false,
+                "processing": true,
+                'rowId': 0,
+                "serverSide": true,
+                "pageLength": 10,
+                "columnDefs": [ ],
+                "ajax": url+"?orderreference="+SELECTED_EXPORT
+            });
+            $('#modal-container-details').modal();
+        }
+    });
+    $("#container_export").click(function (e) {
+        var export_url = $(this).attr('data-url')+"?order_reference="+SELECTED_EXPORT+"";
+        window.location.assign(export_url);
+    });
+
+
+    // VIEW_DETAILS
+    $("#id_exports_view").click(function(){
+         if(SELECTED_EXPORT == '')
+        {
+            showalert("{% trans 'Please select an Order' %}", 'danger');
+        }
+        else
+        {
+            var url = "{% url 'logisticsexport:view_import_details' %}";
+            var data = {'order_ref':SELECTED_EXPORT}
+            $.get(url, data, function (data) {
+                if(data.status==1){
+                    // $('#hold_status').html(data.hold_status);
+                    $('td#v_order-no').html(data.order_data['displaylogisticref']);
+                    var order_status = ''
+                    if(data.order_data['statuscode__statuscode'] == '0039')
+                        order_status = '<span class="st-label bg-blue">'+data.order_data['statuscode__statusdescription']+'</span>';
+                    else if(data.order_data['statuscode__statuscode'] == '0040')
+                            order_status = '<span class="st-label bg-aqua">'+data.order_data['statuscode__statusdescription']+'</span>';
+                    else if(data.order_data['statuscode__statuscode'] == '0041')
+                            order_status = '<span class="st-label bg-yellow">'+data.order_data['statuscode__statusdescription']+'</span>';
+                    else if(data.order_data['statuscode__statuscode'] == '0042')
+                            order_status = '<span class="st-label bg-fuchsia">'+data.order_data['statuscode__statusdescription']+'</span>';
+                    else if(data.order_data['statuscode__statuscode'] == '0043')
+                            order_status = '<span class="st-label bg-navy">'+data.order_data['statuscode__statusdescription']+'</span>';
+                    else if(data.order_data['statuscode__statuscode'] == '0044')
+                            order_status = '<span class="st-label bg-green">'+data.order_data['statuscode__statusdescription']+'</span>';
+                    else if(data.order_data['statuscode__statuscode'] == '0045')
+                            order_status = '<span class="st-label bg-maroon">'+data.order_data['statuscode__statusdescription']+'</span>';
+                    else if(data.order_data['statuscode__statuscode'] == '0046')
+                            order_status = '<span class="st-label bg-teal">'+data.order_data['statuscode__statusdescription']+'</span>';
+                    else if(data.order_data['statuscode__statuscode'] == '0047')
+                            order_status = '<span class="st-label bg-aqua-active">'+data.order_data['statuscode__statusdescription']+'</span>';
+                    else if(data.order_data['statuscode__statuscode'] == '0048')
+                            order_status = '<span class="st-label bg-purple">'+data.order_data['statuscode__statusdescription']+'</span>';
+                    else if(data.order_data['statuscode__statuscode'] == '0049')
+                            order_status = '<span class="st-label bg-lime">'+data.order_data['statuscode__statusdescription']+'</span>';
+                    else if(data.order_data['statuscode__statuscode'] == '0050')
+                            order_status = '<span class="st-label bg-gray">'+data.order_data['statuscode__statusdescription']+'</span>';
+                    else if(data.order_data['statuscode__statuscode'] == '0051')
+                            order_status = '<span class="st-label bg-red">'+data.order_data['statuscode__statusdescription']+'</span>';
+                    else
+                        order_status = data.order_data['statuscode__statusdescription'];
+                    $('td#v_status_id').html(order_status);
+                    $('td#v_order-date').html(convert(data.order_data['orderdate']));
+                    $('td#v_order-owner').html(data.order_data['transportercode__transportername']);
+                    $('td#v_customer').html(data.order_data['consignorcode__customername']);
+                    $('td#v_consignee').html(data.order_data['consigneecode__customername']);
+                    $('td#v_invoice-party').html(data.order_data['invoicepartycode__customername']);
+                    $('td#v_shipper-name').html(data.order_data['consignorcode__customername']);
+                    $('td#v_client-ref').html(data.order_data['clientreference']);
+                    $('td#v_origin').html(data.order_data['fromstationcode__locationname']);
+                    $('td#v_destination').html(data.order_data['tostationcode__locationname']);
+                    $('td#v_loading-point').html(data.order_data['loadingpointcode__depotname']);
+                    $('td#v_off-loading-point').html(data.order_data['offloadingpointcode__depotname']);
+                    $('td#v_20-').html(data.order_data['container20']);
+                    $('td#v_40-').html(data.order_data['container40']);
+                    $('td#v_tonnage').html(data.order_data['tonnage']);
+                    $('td#v_commodity').html(data.order_data['commoditycode__commodityname']);
+                    $('td#v_cargo-type').html(data.order_data['cargotypecode__cargotypename']);
+                    $('td#v_shipping-line').html(data.order_data['shippinglinecode__shippinglinename']);
+                    $('td#v_clearing-agent').html(data.order_data['agentcode__agentname']);
+                    $('td#v_port-agent').html(data.order_data['portagentcode__agentname']);
+                    $('td#v_created-user').html(data.order_data['entryuser']);
+                    $('td#v_remarks').html(data.order_data['descriptionofgoods']);
+                    $('td#v_doc_rec').html(convert(data.order_data['documentreceivedon']));
+                    $('td#v_submitted_fa').html(convert(data.order_data['forwardingagentsubmitdate']));
+                    $('td#v_cleared_fa').html(convert(data.order_data['forwardingagentcleareddate']));
+                    $('td#v_doc_tax').html(convert(data.order_data['documenttaxed']));
+                    $('td#v_w7').html(convert(data.order_data['w7date']));
+                    $('td#v_t8').html(convert(data.order_data['t8date']));
+                    $('td#v_kudu').html(convert(data.order_data['kudumbabooking']));
+                    $('td#v_portbook').html(convert(data.order_data['portbooking']));
+                    $('td#v_stack').html(convert(data.order_data['stackorder']));
+                    $('td#v_Sob').html(convert(data.order_data['shippedonboard']));
+                    $('#exports_details_view').modal();
+                }
+                else{
+                    if(data.message){
+                        showalert(data.message, 'danger');
+                    }
+                }
+            });
+        }
+    });
+
+    function convert(date){
+        if(date){
+            let current_datetime = new Date(date);
+            let formatted_date = ("0" + current_datetime.getDate()).slice(-2)+"/"+ ("0" + (current_datetime.getMonth() + 1)).slice(-2)+"/" + current_datetime.getFullYear();
+            return formatted_date;
+        }
+        return null;
+
+    }
+    view_modal_table = $("#view_modal_table").DataTable({
+        "order": [],
+        'paging'      : false,
+        'lengthChange': false,
+        'searching'   : false,
+        'ordering'    : true,
+        'info'        : true,
+        'autoWidth'   : false,
+        "processing": true,
+        "serverSide": false,
+        "columnDefs": [
+            {
+                "targets":[1],
+                "orderable":false
+            }
+        ]
+    })
+
+
+     $("#id_del_sob").on('click',function(){
+        if(SELECTED_EXPORT == '')
+        {
+            showalert("{% trans 'Please select an Order' %}", 'danger');
+        }
+        else
+        {
+            var url = "{% url 'logisticsexport:logisticsexports_sob_date' %}";
+            var data = {'order_ref':SELECTED_EXPORT,'update_type':'DEL_SOB'}
+            $.get(url, data, function (data) {
+                if(data.status==1){
+                    $('#id_model_delete_sob').modal({
+                        backdrop: 'static',
+                        keyboard: false
+                    });
+                }
+                else{
+                    if(data.message){
+                        // showalert(data.message, 'danger');
+                        Swal.fire({
+                                title: '',
+                                icon: 'warning',
+                                html: data.message,
+                                allowOutsideClick: true
+                            });
+                    }
+                }
+            });
+        }
+     });
+
+
+    $('#id_delete_sob').on('click', function () {
+        var url = "{% url 'logisticsexport:logisticsexports_sob_date' %}";
+        var data = {'order_ref':SELECTED_EXPORT,'update_type':'DEL_SOB'}
+
+        $.post(url, data, function (data) {
+            if (data.status == 1) {
+                showalert('{% trans "Deleted SOB successfully!" %}', 'success');
+            }
+            if (data.status == -1) {
+                if (data.message)
+                {
+                    showalert(data.message, 'danger');
+                }
+                else
+                {
+                    showalert('{% trans "Some error occurred while cancelling order entry!" %}', 'danger');
+                }
+            }
+            export_order_list.ajax.reload();
+            SELECTED_EXPORT      = '';
+            export_data  = null;
+        });
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</script>
+
+{% endblock %}

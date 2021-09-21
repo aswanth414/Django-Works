@@ -1,0 +1,1913 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+{% load i18n %}
+{% load order_tags %}
+{% block page_title %}Ripples | FMS - Logistics Exports Entry{% endblock %}
+
+{% block extra_style %}
+<link rel="stylesheet" href="{% static 'plugins/timepicker/bootstrap-timepicker.min.css' %}">
+<link rel="stylesheet" href="{% static 'dist/css/sweetalert2.min.css' %}">
+    <style>
+        .alert-boxes{display:none;}
+        tbody tr:hover{cursor:pointer;}
+        td,th {white-space:nowrap;}
+        {#.list-error li{display:none;}#}
+        .red-error{
+            color: #F00;
+        }
+        #button_add_containers{display:none;}
+    </style>
+{% endblock %}
+
+{% block dashboard_content  %}
+<div class="content-wrapper"> <!--content-wrapper -->
+
+
+    <section class="content-header"> <!-- Section- content-header -->
+
+        {% if form.edit_orderreference.value|default_if_none:'' %}
+
+        <h1>{% trans "Logistic Exports" %}</h1>
+
+        {% else%}
+        <h1>{% trans "Logistic Exports" %}</h1>
+        {% endif %}
+
+        <ol class="breadcrumb">
+
+            <li><a href="{% url 'dashboard:home' %}"><i class="fa fa-dashboard"></i>{% trans "<Home></Home>" %}</a></li>
+            <li><a href="{% url 'logisticsexport:export-list' %}">{% trans "Logistic Exports" %}</a></li>
+            <li class="active">{% trans "Export Order Entry" %}</li>
+
+        </ol>
+
+    </section> <!-- Section- content-header -->
+
+
+    <div class="box-body" style=" margin-left: 4px; width: 99%; display: block;">  <!--box-body -->
+
+        {% if form.customer_rate_ref.errors %}
+
+            <div class="alert alert-danger"> <!--alert alert-danger -->
+                <button type="button" class="close close-alert" data-dismiss="alert" aria-hidden="true">&times;</button>
+                <span class="alert-msg">
+                {% for error in form.customer_rate_ref.errors %}
+                    <p><strong>{{ error }}</strong></p>
+                {% endfor %}
+                </span>
+            </div> <!--alert alert-danger -->
+
+        {% endif %}
+
+        {% if form.calc_customer_rate.errors %}
+
+            <div class="alert alert-danger"> <!--alert alert-danger -->
+
+                <button type="button" class="close close-alert" data-dismiss="alert" aria-hidden="true">&times;</button>
+
+                <span class="alert-msg">
+
+                {% for error1 in form.calc_customer_rate.errors %}
+
+                    <p><strong>{{ error1 }}</strong></p>
+
+                {% endfor %}
+
+                </span>
+
+            </div> <!--alert alert-danger -->
+
+        {% endif %}
+
+        <script>
+
+            window.setTimeout(function () {
+                $(".alert").fadeTo(500, 0).slideUp(500, function () {
+                    $(this).remove();
+                });
+            }, 4000);
+
+        </script>
+
+    </div> <!--box-body -->
+
+
+    <section class="content"> <!--Section -Content -->
+
+        <div> <!-- class="row" -->
+
+            <div class="nav-tabs-custom nav-tab-clr-v2"> <!-- nav-tabs-custom nav-tab-clr-v2 -->
+
+                <ul class="nav nav-pills nav-justified" style="pointer-events: none;">
+
+                    <li class="active"><a href="#tab_1" data-toggle="tab" aria-expanded="true">{% trans "GENERAL INFORMATION" %}</a></li>
+                    <li class="" id="tab_id"><a href="#tab_2" data-toggle="tab" aria-expanded="false">{% trans "SHIPPING LINE AND VESSEL DETAILS" %}</a></li>
+                    <li class="" id="tab_id"><a href="#tab_3" data-toggle="tab" aria-expanded="false">{% trans "DOCUMENT  DETAILS" %}</a></li>
+
+                </ul>
+
+
+
+                <div class="tab-content tab-row"> <!-- tab-content tab-row -->
+
+                    <div class="box-body alert-boxes alocationalert row" >  </div> <!-- tab-content tab-row -->
+
+<!-- Main _Entry -->
+
+
+
+                    <div class="tab-pane active" id="tab_1">  <!-- Main Entry tab-pane active -->
+
+                        <div class="row"> <!-- Main Entry Row -->
+
+                            <div class="col-xs-12"> <!-- Main Entry  col-xs-12-->
+
+                                <form id="id_form" method="post" class="form-horizontal" > <!-- Main Entry form-->
+
+                                    {% csrf_token %}
+
+                                    <div class="box box-primary bg-white w-100"> <!-- box box-primary bg-white w-100-->
+
+                                        <div class="box-body"> <!-- box-body -->
+
+                                            <div class="col-md-12">&nbsp;</div>
+
+                                            <div class="col-xs-12 col-sm-12 col-md-6">
+
+                                               <!--  <div class="form-group">
+
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "EXP Number" %}<sup>*</sup></label>
+                                                    <div class="col-sm-8">
+                                                        {{ form.imp_number }}
+                                                        {{ form.imp_number.errors }}
+                                                    </div>
+                                                </div>  -->
+
+                                                <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "Entry Date" %}<sup>*</sup></label>
+                                                    <div class="col-sm-8">
+                                                        <div class="input-group date w-50">
+                                                            <div class="input-group-addon">
+                                                                <i class="fa fa-calendar"></i>
+                                                            </div>
+                                                            {{ form.entry_date }}
+                                                        </div>
+                                                        <br>&nbsp;{{ form.entry_date.errors}}
+                                                    </div>
+                                                    {{ form.edit_orderreference }}
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "Order Owner" %}</label>
+                                                    <div class="col-sm-8">
+                                                        <input type="text" class="form-control pull-right"  disabled value="{{ transporter_name }}">
+                                                        <input type="hidden" id="id_order_owner" class="form-control pull-right" name="order_owner" value="{{ transporter_code }}">
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "Customer" %} <sup>*</sup></label>
+                                                    <div class="col-sm-8">
+                                                        <div class="input-group" style="display: inline;width: 80%;float: left;">
+                                                            {{ form.customer_name }}
+                                                            <input id="id_customercode" name="customercode" value="{{ form.customercode.value|default_if_none:'' }}" type="hidden">
+                                                        </div>
+                                                        <div class="input-group-btn" style="width:20%">
+                                                            <button type="button" style="width:100%" class="btn btn-primary btn-wf-md entity_search" data-entity="customer" id="id_customer_search"><i class="fa fa-search"></i></button>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-sm-offset-4">{{ form.customercode.errors }}</div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "Consignee" %} <sup>*</sup></label>
+                                                    <div class="col-sm-8">
+                                                        <div class="input-group" style="display: inline;width: 80%;float: left;">
+                                                            {{ form.consignee_name }}
+                                                            <input id="id_consigneecode" name="consigneecode" value="{{ form.consigneecode.value|default_if_none:'' }}" type="hidden">
+                                                            <!-- /btn-group -->
+                                                        </div>
+                                                        <div class="input-group-btn" style="width:20%">
+                                                            <button type="button" style="width:100%" class="btn btn-primary btn-wf-md entity_search" data-entity="consignee" id="id_consignee_search"><i class="fa fa-search"></i></button>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-sm-offset-4">{{ form.consigneecode.errors }}</div>
+                                                </div>
+
+                                               <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "Invoice Party" %} <sup>*</sup></label>
+                                                    <div class="col-sm-8">
+                                                        <div class="input-group" style="display: inline;width: 80%;float: left;">
+                                                            {{ form.invoice_party_name }}
+                                                            <input id="id_invoice_partycode" name="invoice_partycode" value="{{ form.invoice_partycode.value|default_if_none:'' }}" type="hidden">
+                                                            <!-- /btn-group -->
+                                                        </div>
+                                                        <div class="input-group-btn" style="width:20%">
+                                                            <button type="button" style="width:100%" class="btn btn-primary btn-wf-md entity_search" data-entity="invoice_party" id="id_invoice_party_search"><i class="fa fa-search"></i></button>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-sm-offset-4">{{ form.invoice_partycode.errors }}</div>
+                                                </div>
+
+                                                <!--<div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "Invoice Currency" %}<sup>*</sup></label>
+                                                    <div class="col-sm-8">
+                                                        {{ form.invoice_currency }}
+                                                        {{ form.invoice_currency.errors }}
+                                                    </div>
+                                                </div>-->
+
+                                                <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "Origin" %}<sup>*</sup></label>
+                                                    <div class="col-sm-8">
+                                                        <div class="input-group" style="display: inline;width: 80%;float: left;">
+                                                        {{ form.origin }}
+                                                        {{ form.origin.errors }}
+                                                        </div>
+                                                        <div class="input-group-btn" style="width:20%">
+                                                            <button type="button" style="width:100%" class="btn btn-primary btn-wf-md entity_search" data-entity="create_origin" id="id_origin_add"><i class="glyphicon glyphicon glyphicon-plus"></i></button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "Loading Point" %}<sup>*</sup></label>
+                                                    <div class="col-sm-8">
+                                                        <div class="input-group" style="display: inline;width: 80%;float: left;">
+                                                        {{ form.loading_point }}
+                                                        {{ form.loading_point.errors }}
+                                                        </div>
+                                                        <div class="input-group-btn" style="width:20%">
+                                                            <button type="button" style="width:100%" class="btn btn-primary btn-wf-md entity_search" data-entity="create_deport" id="id_deport_add"><i class="glyphicon glyphicon glyphicon-plus"></i></button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "Loading Address" %}</label>
+                                                    <div class="col-sm-8">
+                                                        <input type="text" class="form-control" disabled id="id_loading_address" name="" value="">
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "Destination" %}<sup>*</sup></label>
+                                                    <div class="col-sm-8">
+                                                        {{ form.destination }}
+                                                        {{ form.destination.errors }}
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "Off Loading Point" %}<sup>*</sup></label>
+                                                    <div class="col-sm-8">
+                                                        {{ form.offloading_point }}
+                                                        {{ form.offloading_point.errors }}
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "Off Loading Address" %}</label>
+                                                    <div class="col-sm-8">
+                                                        <input type="text" class="form-control" disabled id="id_offloading_address" name="" value="">
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "Commodity" %}<sup>*</sup></label>
+                                                    <div class="col-sm-8">
+                                                        <div class="input-group" style="display: inline;width: 80%;float: left;">
+                                                        {{ form.commodity }}
+                                                        {{ form.commodity.errors }}
+                                                        </div>
+                                                        <div class="input-group-btn" style="width:20%">
+                                                            <button type="button" style="width:100%" class="btn btn-primary btn-wf-md entity_search" data-entity="create_commodity" id="id_commodity_add"><i class="glyphicon glyphicon glyphicon-plus"></i></button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 col-xs-12 control-label">{% trans "Cargo Type" %}<sup>*</sup></label>
+                                                    <div class="col-sm-4 col-xs-6 mrm-25">
+                                                        {{ form.cargo_type }}
+                                                    </div>
+                                                    <div class="col-sm-4 col-xs-6 ml-0">
+                                                        <button id="button_add_containers" type="button" data-url="{% url 'logisticsexport:container-entry-endpoint' %}" data-url-unpacked="{% url 'logisticsexport:containerunpack-entry-endpoint' %}" data-orderreference="{{ orderreference }}" data-details-url="{% url 'logisticsexport:container-details' %}" class="btn btn-primary"><span class="glyphicon glyphicon glyphicon-plus"></span>
+                                                                {% trans "Add Containers" %}</button>
+                                                    </div>
+                                                    <div class="col-sm-offset-4">{{ form.cargo_type.errors }}</div>
+                                                </div>
+
+                                            </div><!-- col-xs-12 col-sm-12 col-md-6 -->
+
+
+
+                                            <div class="col-xs-12 col-sm-12 col-md-6"> <!-- col-xs-12 col-sm-12 col-md-6 (2)-->
+                                                <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "BL Number" %} </label>
+                                                    <div class="col-sm-8">
+                                                        {{form.blnumber}}
+                                                        {{form.blnumber.errors}}
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="inputEmail3" class="col-sm-4 control-label">{% trans "Client Reference" %}</label>
+                                                    <div class="col-sm-8">
+                                                        {{ form.client_reference }}
+                                                        {{ form.client_reference.errors }}
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="inputEmail3" class="col-lg-4 col-md-4 col-sm-4 control-label">{% trans 'Container 20"' %}</label>
+                                                    <div class="col-lg-2 col-md-8 col-sm-8">
+                                                        {{ form.container_20 }}
+                                                        {{ form.container_20.errors }}
+                                                    </div>
+                                                    <label for="inputEmail3" class="col-lg-4 col-md-4 col-sm-4 control-label">{% trans 'Container 40"' %}</label>
+                                                    <div class="col-lg-2 col-md-8 col-sm-8">
+                                                        {{ form.container_40 }}
+                                                        {{ form.container_40.errors }}
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="inputPassword3" class="col-lg-4 col-md-4 col-sm-4 control-label">{% trans "Packing Unit" %}</label>
+                                                    <div class="col-lg-2 col-md-8 col-sm-8">
+                                                        {{ form.packing_unit }}
+                                                    </div>
+                                                    <label for="inputEmail3" class="col-lg-4 col-md-4 col-sm- col-sm-4 control-label">{% trans "Weight(kg)" %}</label>
+                                                    <div class="col-lg-2 col-md-8 col-sm-8">
+                                                        {{ form.weight }}
+                                                        {{ form.weight.errors}}
+                                                    </div>
+                                                </div>
+                                                <div style="color:red;">{{ form.packing_unit.errors }}</div>
+                                                <div class="form-group">
+                                                    <label for="inputEmail3" class="col-lg-4 col-md-4 col-sm-4 control-label">{% trans "Quantity" %}</label>
+                                                    <div class="col-lg-2 col-md-8 col-sm-8">
+                                                        {{ form.quantity }}
+                                                    </div>
+                                                    <label for="inputEmail3" class="col-lg-4 col-md-4 col-sm-4 control-label">{% trans "Tonnage" %}</label>
+                                                    <div class="col-lg-2 col-md-8 col-sm-8">
+                                                        {{ form.tonnage }}
+                                                    </div>
+                                                </div>
+                                                <div style="color:red;">{{ form.quantity.errors }}</div>
+                                                {{ form.tonnage.errors }}
+                                                <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "Cargo Details Ref" %}</label>
+                                                    <div class="col-sm-8">
+                                                        {{ form.cargo_details_ref }}
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "Declaration No" %}</label>
+                                                    <div class="col-sm-8">
+                                                        {{ form.declaration_no }}
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "LI / Report Comments" %}</label>
+                                                    <div class="col-sm-8">
+                                                        {{ form.report_comments }}
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "Border Entry" %}</label>
+                                                    <div class="col-sm-8">
+                                                        <input id="id_border_entry" type="text" class="form-control" placeholder="" disabled="">
+                                                        <input id="id_border_code" type="hidden" name="border_entry" value="{{ form.border_entry.value|default_if_none:'' }}" class="form-control" placeholder="">
+                                                        {{ form.border_entry.errors }}
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "Border Clearing Agent" %}<sup>*</sup></label>
+                                                    <div class="col-sm-8">
+                                                        {{ form.clearing_agent }}
+                                                        {{ form.clearing_agent.errors }}
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "Port of entry" %}</label>
+                                                    <div class="col-sm-8">
+                                                        <input id="id_border_entry2" type="text" class="form-control" placeholder="" disabled="">
+                                                        {{ form.border_entry.errors }}
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "Port Agent" %}<sup>*</sup></label>
+                                                    <div class="col-sm-8">
+                                                        {{ form.port_agent }}
+                                                        {{ form.port_agent.errors }}
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "Broker Name" %}<sup>*</sup></label>
+                                                    <div class="col-sm-8">
+                                                        {{ form.broker }}
+                                                        {{ form.broker.errors }}
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="inputEmail3" class="col-sm-4 control-label">{% trans "Remarks" %}</label>
+                                                    <div class="col-sm-8">
+                                                        <textarea name="remarks" value="{{ form.remarks.value|default_if_none:'' }}" class="w-100 form-control remarks">{{ form.remarks.value|default_if_none:'' }}</textarea>
+                                                    </div>
+                                                </div>
+
+
+                                            </div> <!-- col-xs-12 col-sm-12 col-md-6 (2)-->
+
+                                        </div>  <!-- box-body -->
+
+                                        <input type="hidden" name="tab_number" value="{{nxt_tb_number}}">
+                                        <input type="hidden" name="next_tab" class="tab_2">
+
+                                        <div class="box-footer col-xs-12 col-sm-12 col-md-12">
+                                            <button type="button" onclick="location.href='{% url 'logisticsexport:export-list' %}'" class="btn btn-default">{% trans "Cancel" %}</button>
+                                            <button type="button" id="order_details_tab" data-next-tab="tab_2" class="btn btn-success pull-right btnNext">{% trans "Next" %}</button>
+                                        </div>
+
+
+                                    </div> <!-- box box-primary bg-white w-100-->
+
+
+                                </form>
+
+                            </div> <!-- Main Entry  col-xs-12-->
+
+                        </div> <!-- Main Entry Row -->
+
+                    </div> <!-- Main Entry tab-pane active -->
+
+
+<!-- SHIPPING LINE AND VESSEL DETAILS  -->
+
+                    <div class="tab-pane" id="tab_2"> <!-- SHIPPING LINE AND VESSEL DETAILS  tab-pane-->
+
+                        <div class="row"> <!-- SHIPPING LINE AND VESSEL DETAILS  row-->
+
+                            <div class="col-xs-12"> <!-- SHIPPING LINE AND VESSEL DETAILS col-xs-12 -->
+
+
+                                <form id="id_form1" method="post" class="form-horizontal"> <!-- SHIPPING LINE AND VESSEL DETAILS Form  -->
+
+                                    <div class="box box-primary bg-white w-100"> <!-- SHIPPING LINE AND VESSEL DETAILS box box-primary bg-white w-100 -->
+
+                                        <div class="box-body"> <!-- SHIPPING LINE AND VESSEL DETAILS box box-primary bg-white w-100 -->
+
+                                            <div class="col-md-12">&nbsp;</div>
+
+
+                                            <div class="col-xs-12 col-sm-12 col-md-6"> <!-- SHIPPING LINE AND VESSEL DETAILS col-xs-12 col-sm-12 col-md-6 -->
+
+                                               <!-- <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "Mode of Transportation" %} </label>
+                                                    <div class="col-sm-8">
+                                                        <select class="form-control" disabled>
+                                                            <option value="">{% trans 'Shipping Line' %}</option>
+                                                        </select>
+                                                    </div>
+                                                </div> -->
+
+                                                <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "Shipppling Line Name" %} <sup>*</sup></label>
+                                                    <div class="col-sm-8">
+                                                        {{ form.shippingline_name }}
+                                                        {{ form.shippingline_name.errors }}
+                                                    </div>
+                                                     <div class="col-sm-offset-4">{{ form.shippingline_code.errors }}</div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "Allowed Free Days" %}</label>
+                                                    <div class="col-sm-8">
+                                                        {{form.allowed_free_days}}
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "Vessel Name" %}<sup>*</sup></label>
+                                                    <div class="col-sm-8">
+                                                        {{ form.vessel }}
+                                                        {{ form.vessel.errors }}
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "Voyage" %}<sup>*</sup></label>
+                                                    <div class="col-sm-8">
+                                                        {{ form.voyage }}
+                                                        <!-- <select name="voyage" class="form-control" id="id_voyage">
+                                                            <option value="">Select A Voyage</option>
+                                                        </select> -->
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "ETD" %}<sup>*</sup></label>
+                                                    <div class="col-sm-8">
+                                                        <div class="input-group date w-50">
+                                                            <div class="input-group-addon">
+                                                                <i class="fa fa-calendar"></i>
+                                                            </div>
+                                                            {{ form.etd }}
+                                                            <!--<input type="text" name="etd"  class=" odate form-control pull-right" data-date-format="dd/mm/yyyy" required="" >-->
+                                                        </div>
+                                                        <br>&nbsp;
+                                                    </div>
+                                                </div>
+
+                                               <!--   <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "C/M Date" %}<sup>*</sup></label>
+                                                    <div class="col-sm-8">
+                                                        <div class="input-group date w-50">
+                                                            <div class="input-group-addon">
+                                                                <i class="fa fa-calendar"></i>
+                                                            </div>
+                                                            <input type="text" name="cm_date"  class=" odate form-control pull-right" data-date-format="dd/mm/yyyy" required="" >
+                                                        </div>
+                                                        <br>&nbsp;
+                                                    </div>
+                                                </div> -->
+
+
+                                                <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "Actual Departure" %}<sup>*</sup></label>
+                                                    <div class="col-sm-8">
+                                                        <div class="input-group date w-50">
+                                                            <div class="input-group-addon">
+                                                                <i class="fa fa-calendar"></i>
+                                                            </div>
+                                                            {{form.actual_departure}}
+
+                                                            <!--<input type="text" name="actual_departure"  class="form-control pull-right odate" data-date-format="dd/mm/yyyy" required="" >-->
+                                                        </div>
+                                                        <br>&nbsp;
+                                                    </div>
+                                                </div>
+
+                                           <!--     <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "Final Discharge" %}<sup>*</sup></label>
+                                                    <div class="col-sm-8">
+                                                        <div class="input-group date w-50">
+                                                            <div class="input-group-addon">
+                                                                <i class="fa fa-calendar"></i>
+                                                            </div>
+                                                            <input type="text" name="stack_closing"  class="odate form-control pull-right" data-date-format="dd/mm/yyyy" required="" >
+                                                        </div>
+                                                        <br>&nbsp;
+                                                    </div>
+                                                </div>  -->
+
+                                                <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "Stack Closing Date" %}<sup>*</sup></label>
+                                                    <div class="col-sm-8">
+                                                        <div class="input-group date w-50">
+                                                            <div class="input-group-addon">
+                                                                <i class="fa fa-calendar"></i>
+                                                            </div>
+                                                            {{form.stack_closing}}
+                                                            <!--<input type="text" name="stack_closing"  class="odate form-control pull-right" data-date-format="dd/mm/yyyy" required="" >-->
+                                                        </div>
+                                                        <br>&nbsp;
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "Clearance Deadline" %}<sup>*</sup></label>
+                                                    <div class="col-sm-8">
+                                                        <div class="input-group date w-50">
+                                                            <div class="input-group-addon">
+                                                                <i class="fa fa-calendar"></i>
+                                                            </div>
+                                                            {{form.clearance_deadline}}
+                                                            <!--<input type="text" name="clearance_deadline"  class="odate form-control pull-right" data-date-format="dd/mm/yyyy" required="" >-->
+                                                        </div>
+                                                        <br>&nbsp;
+                                                    </div>
+                                                </div>
+
+                                            </div> <!-- SHIPPING LINE AND VESSEL DETAILS col-xs-12 col-sm-12 col-md-6 -->
+
+                                        </div><!-- SHIPPING LINE AND VESSEL DETAILS box body-->
+
+                                        <input type="hidden" name="tab_number" value="{{form.tab_number.value}}">
+                                        <div class="box-footer col-xs-12 col-sm-12 col-md-12">
+                                            <button type="button" onclick="location.href='{% url 'logisticsexport:export-list' %}'" class="btn btn-default">{% trans "Cancel" %}</button>
+                                            <button type="button" data-tar-tab="tab_3" class="btn btn-success pull-right btnNext">{% trans "Next" %}</button>
+                                            <div class="pull-right">&nbsp;</div>
+                                            <button type="button" data-tar-tab="tab_1" class="btn btn-default pull-right btnPrevious">{% trans "Previous" %}</button>
+                                        </div>
+
+                                    </div> <!-- SHIPPING LINE AND VESSEL DETAILS box box-primary bg-white w-100 -->
+
+                                </form> <!-- SHIPPING LINE AND VESSEL Form -->
+
+                            </div> <!-- SHIPPING LINE AND VESSEL DETAILS col-xs-12 -->
+
+                        </div> <!-- SHIPPING LINE AND VESSEL DETAILS  row-->
+
+                    </div><!-- SHIPPING LINE AND VESSEL DETAILS  tab-pane-->
+
+
+<!-- Document details-->
+
+                    <div class="tab-pane" id="tab_3">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <form id="id_form2" method="post" class="form-horizontal" >
+                                    <div class="box box-primary bg-white w-100">
+                                        <div class="box-body">
+                                            <div class="col-md-12">&nbsp;</div>
+                                            <div class="col-xs-12 col-sm-12 col-md-6">
+                                                <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans " Booking Received" %}</label>
+                                                    <div class="col-sm-8">
+                                                        <div class="input-group date w-50">
+                                                            <div class="input-group-addon">
+                                                                <i class="fa fa-calendar"></i>
+                                                            </div>
+                                                            <input type="text" name="booking_received" id="id_booking_received"  class="odate form-control pull-right" data-date-format="dd/mm/yyyy" required="" >
+                                                        </div>
+
+                                                        <br>&nbsp;
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "Agent Name" %}</label>
+
+                                                        <div class="col-sm-8">
+                                                            {{ form.forwarding_agent }}
+                                                        </div>
+
+                                                </div>
+
+
+                                                 <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "Submitted Agent Date" %}</label>
+                                                    <div class="col-sm-8">
+                                                        <div class="input-group date w-50">
+                                                            <div class="input-group-addon">
+                                                                <i class="fa fa-calendar"></i>
+                                                            </div>
+                                                            <input type="text" name="submitted_fa" id="id_submitted_fa" class="form-control pull-right odate" data-date-format="dd/mm/yyyy" required="" id="cleared_fa">
+                                                        </div>
+                                                        <br>&nbsp;
+                                                    </div>
+                                                </div>
+
+
+                                                <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "Cleared Agent Date" %}</label>
+                                                    <div class="col-sm-8">
+                                                        <div class="input-group date w-50">
+                                                            <div class="input-group-addon">
+                                                                <i class="fa fa-calendar"></i>
+                                                            </div>
+                                                            <input type="text" name="cleared_agent_name"  id="id_cleared_agent_name" class="odate form-control pull-right" data-date-format="dd/mm/yyyy" required="" >
+                                                        </div>
+                                                        <br>&nbsp;
+                                                    </div>
+                                                </div>
+
+
+                                                <div class="form-group">
+                                                    <label for="inputPassword3" class="col-sm-4 control-label">{% trans "NDE Taxed" %}</label>
+                                                    <div class="col-sm-8">
+                                                        <div class="input-group date w-50">
+                                                            <div class="input-group-addon">
+                                                                <i class="fa fa-calendar"></i>
+                                                            </div>
+                                                            <input type="text" name="nde_tax"  id="id_nde_tax" class="odate form-control pull-right" data-date-format="dd/mm/yyyy" required="" >
+                                                        </div>
+                                                        <br>&nbsp;
+                                                    </div>
+                                                </div>
+
+
+
+
+
+                                            </div>
+                                        </div>
+
+                                        <input type="hidden" name="tab_number" value="{{form.tab_number.value}}">
+                                        <div class="box-footer col-xs-12 col-sm-12 col-md-12">
+                                            <button type="button" onclick="location.href='{% url 'logisticsexport:export-list' %}'" class="btn btn-default">{% trans "Cancel" %}</button>
+                                            <button type="button" class="btn btn-success pull-right btnNext">{% trans "Save" %}</button>
+                                            <div class="pull-right">&nbsp;</div>
+                                            <button type="button" data-tar-tab="tab_2" class="btn btn-default pull-right btnPrevious">{% trans "Previous" %}</button>
+                                        </div>
+
+                                    </div>
+
+                                </form>
+
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+    </section>
+
+</div>
+
+
+{% endblock %}
+
+{% block modal %}
+
+{% include 'dashboard/logistics/logistics_order/modals/search_customer.html' %}
+{% include 'dashboard/logistics/logistics_order/modals/search_consignee.html' %}
+{% include 'dashboard/logistics/logistics_order/modals/search_invoice_party.html' %}
+{% include 'dashboard/logistics/logistics_export/modals/container_entry.html' %}
+{% include 'dashboard/logistics/logistics_export/modals/container_unpacking.html' %}
+{% endblock %}
+
+{% block extra_script %}
+<script src="{% static 'plugins/timepicker/bootstrap-timepicker.min.js' %}"></script>
+<script src="{% static 'dist/js/custom.js' %}"></script>
+<!-- DataTables -->
+<script src="{% static 'bower_components/datatables.net/js/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js' %}"></script>
+<!-- sweetalert2 -->
+<!-- <link rel="stylesheet" href="{% static 'dist/css/sweetalert2.min.css' %}">-->
+<script src="{% static 'dist/js/sweetalert2.min.js' %}"></script>
+
+<!-- iCheck -->
+<script src="{% static 'plugins/iCheck/icheck.min.js' %}"></script>
+<script src="{% static 'dist/js/jQuery.fixTableHeader.min.js' %}"></script>
+<script>
+    $(function () {
+        $('input').iCheck({
+            checkboxClass: 'icheckbox_square-blue',
+            radioClass: 'iradio_square-blue',
+            increaseArea: '20%' /* optional */
+        });
+    });
+</script>
+
+<script>
+
+$(document).ready(function(){
+    $('.odate').datepicker({
+        autoclose: true
+    })
+
+    $('#id_entry_date').datepicker({
+        autoclose: true
+    })
+
+    $('#date_to').datepicker({
+        autoclose: true
+    })
+
+    $('#datepicker2').datepicker({
+        autoclose: true
+    })
+
+    var tab_num = 1;
+
+
+    $('.btnPrevious').click(function(){
+        $('.nav-pills > .active').prev('li').find('a').trigger('click');
+        tab_num--;
+    });
+
+
+    $('.btnNext').click(function(){
+        if(tab_num==1)
+        {
+            var url = "{% url 'logisticsexport:export_order-validate' %}"
+            data = $('#id_form').serialize();
+            data = data + '&tab_num=' + tab_num;
+        }
+        if(tab_num==2)
+        {
+            $(".vesseldates").attr('disabled',false);
+            $(".vesseldates").attr('readonly',true);
+            var url = "{% url 'logisticsexport:export_order-validate' %}"
+            data = $.param($('#id_form1').serializeArray())
+            data = data + '&tab_num=' + tab_num;
+        }
+        if(tab_num==3)
+        {
+            $(".vesseldates").attr('disabled',false);
+            $(".vesseldates").attr('readonly',true);
+            var url = "{% url 'logisticsexport:export_order-validate' %}"
+            data = $.param($('#id_form2, #id_form1, #id_form').serializeArray())
+            data = data + '&tab_num=' + tab_num;
+
+            if('{{action_type}}' == 'E'){
+                data = data + '&action_type=E';
+            }
+            else{
+                data = data + '&action_type=I';
+            }
+        }
+
+        $.post(url,data,function(data){
+            $(".vesseldates").attr('readonly',false);
+            $(".vesseldates").attr('disabled',true);
+
+            if (data.status == 'success')
+            {
+                $('.nav-pills > .active').next('li').find('a').trigger('click');
+                tab_num++;
+            }
+            else if (data.status == 'complete')
+            {
+                window.location.href = "{% url 'logisticsexport:export-list' %}";
+            }
+            else if(data.status == 'failure')
+            {
+                var arr = data.message;
+                // swal("","{% trans 'No distance found in distance master' %}","error");
+                str_validations = ''
+                $.each(arr, function(index, value)
+                {
+                    if (value.length != 0)
+                    {
+                        str_validations += `<li class='has-error'><strong><i class='fa fa-times-circle-o'></i><span class='error-message'>&nbsp;${value}</span></strong></li>`
+                        // alert(value);
+                    }
+                });
+                // swal("",str_validations,"error");
+                // swal("","{% trans 'No distance found in distance master' %}","error");
+                Swal.fire({
+                                title: '',
+                                icon: 'warning',
+                                html: str_validations,
+                                allowOutsideClick: true
+                            });
+            }
+            else if(data.status == 'exception')
+            {
+                const error_message =`<li class='has-error'><strong><i class='fa fa-times-circle-o'></i><span class='error-message'>&nbsp;${data.message}</span></strong></li>`;
+            }
+        });
+
+    });
+
+
+    //$(document).ready(function(){
+        console.log('{{form.tab_number}}')
+        var SELECTED_CUSTOMERCODE = "";
+        var SELECTED_CONSIGNEECODE = "";
+        var SELECTED_INVOICE_PARTY_CODE = "";
+        var SELECTED_CONTAINER_ENTRY = "";
+        var SELECTED_COMMODITY_ENTRY = "";
+
+        var entity_table = null;
+        var container_table = null;
+        var container_unpack_table = null;
+        var commodity_table = null;
+        var entity = "";
+        var quotations_list = null;
+        var quantity_in_kg  = 1000;
+
+
+        $('.entity_search').click(function(e){
+            entity = $(this).attr('data-entity');
+            e.preventDefault();
+            customer_input = $("#id_"+entity+"_name").val();
+            $("#"+entity+"_search_modal #"+entity+"_search_input").val( customer_input );
+            entity_table = $('#'+entity+'_list_table').DataTable({
+                "order": [[ 0, 'asc' ]],
+                'paging'      : true,
+                'lengthChange': false,
+                'searching'   : false,
+                'ordering'    : true,
+                'info'        : true,
+                'autoWidth'   : false,
+                "processing": true,
+                'rowId': 6,
+                "serverSide": true,
+                "pageLength": 10,
+                "columnDefs": [
+                    {
+                        "targets": [ 6 ],
+                        "visible": false,
+                        "searchable": false
+                    }
+                ],
+                "ajax": {
+                    "url":"{% url 'logisticsexport:customers-list' %}?entity="+entity+"&search="+customer_input,
+                    "type" :"POST"
+                }
+            });
+
+            $('#'+entity+'_search_modal').modal({
+                backdrop: 'static',
+                keyboard: false
+            });
+
+        });
+
+        $('.entity_search_btn').click(function(e){
+            entity_table.ajax.url("{% url 'logisticsexport:customers-list' %}?entity="+entity+"&search="+$('#'+entity+'_search_input').val()).load()
+        });
+
+        $('.entity_list_table').on('click', 'tbody tr', function(){
+          const this_row = $(this);
+          this_row.siblings().removeClass('bg-active-row');
+          this_row.addClass('bg-active-row');
+          if(entity=='customer')
+          {
+            SELECTED_CUSTOMERCODE = this_row.attr("id");
+          }
+          else if(entity=='consignee')
+          {
+              SELECTED_CONSIGNEECODE = this_row.attr("id");
+          }
+          else if(entity=='invoice_party')
+          {
+             SELECTED_INVOICE_PARTY_CODE =  this_row.attr("id");
+          }
+        });
+
+        $('.select_entity').click(function(e){
+            var code = "";
+            if(entity=='customer')
+            {
+                code = SELECTED_CUSTOMERCODE;
+                $('#id_customercode').val(SELECTED_CUSTOMERCODE)
+                $('#id_customercode').trigger('change');
+            }
+            else if(entity=='consignee')
+            {
+                code = SELECTED_CONSIGNEECODE;
+
+            }
+            else if(entity=='invoice_party')
+            {
+                code = SELECTED_INVOICE_PARTY_CODE;
+                $('#id_invoice_partycode').val(SELECTED_INVOICE_PARTY_CODE)
+                $('#id_invoice_partycode').trigger('change');
+            }
+
+            $('#id_'+entity+'_name').val($('#'+entity+'_list_table #'+code).find("td:first").text());
+            $('#id_'+entity+'code').val(code);
+            entity_table.clear().destroy();
+        });
+
+        $(".close_search_entity").click(function (e) {
+            entity_table.clear().destroy();
+        });
+
+        $('#id_origin_add').click(function(e)
+        {
+            window.open("{% url 'destination_master:destination-master-list' %}", "_blank");
+        });
+        $('#id_deport_add').click(function(e)
+        {
+            window.open("{% url 'loading_offloading_depots:loading_offloading_depots-list' %}", "_blank");
+        });
+        $('#id_commodity_add').click(function(e)
+        {
+            window.open("{% url 'commoditymaster:list' %}", "_blank");
+        });
+
+
+        $('#id_origin').change(function(){
+            $.ajaxSetup({async: false });
+            $.get($(this).attr('data-url'), {location_code:$(this).val(),origin:'true'},function(data){
+                $('#id_loading_point').html(data.options_html);
+            });
+            $.ajaxSetup({async: true});
+            var places = {origin_code:$(this).val(),destination_code:$('#id_destination').val()};
+            $('#id_loading_point').val("{{ form.loading_point.value|default_if_none:'' }}");
+            $.ajaxSetup({async: false });
+            $.get($(this).attr('data-border-agent-url'),places ,function(data){
+                $('#id_border_entry').val(data.border_entry);
+                $('#id_border_code').val(data.border_entry_code);
+                $('#id_clearing_agent').html(data.clearing_agent_html);
+            });
+            $.ajaxSetup({async: true});
+            $('#id_clearing_agent').val("{{ form.clearing_agent.value|default_if_none:'' }}")
+            if (($('#id_origin').val() !='') &&  ($('#id_destination').val() !=''))
+            {
+                var url = "{% url 'logisticsexport:check-distance' %}?fromstationcode="+$('#id_origin').val()+"&tostationcode="+$('#id_destination').val();
+                $.get(url, function (data)
+                {
+                    if (data.distance == 'N')
+                    {
+                        distance = 'Distance Not defined for the From Station and To Station';
+                        swal("","{% trans 'No distance found in distance master' %}","error");
+                    }
+                    else
+                    {
+                        distance = '';
+                    }
+                });
+            }
+            if ($("#id_invoice_partycode").val() > 0)
+            {
+                $('#id_calc_customer_rate').val(0);
+            }
+        }).trigger('change');
+
+
+        $('#id_destination').change(function(){
+            $.ajaxSetup({async: false });
+            $.get($(this).attr('data-url'), {location_code:$(this).val(),origin:'false'},function(data){
+                $('#id_offloading_point').html(data.options_html);
+            });
+            $.ajaxSetup({async: true});
+            $('#id_offloading_point').val("{{ form.offloading_point.value|default_if_none:'' }}");
+            var places = {origin_code:$('#id_origin').val(),destination_code:$(this).val()};
+            $.ajaxSetup({async: false });
+            $.get($(this).attr('data-border-agent-url'),places ,function(data){
+                $('#id_border_entry').val(data.border_entry);
+                $('#id_border_code').val(data.border_entry_code);
+                $('#id_clearing_agent').html(data.clearing_agent_html);
+            });
+            $.ajaxSetup({async: true});
+            $('#id_clearing_agent').val("{{ form.clearing_agent.value|default_if_none:'' }}")
+            if (($('#id_origin').val() !='') &&  ($('#id_destination').val() !=''))
+            {
+                var url = "{% url 'logisticsexport:check-distance' %}?fromstationcode="+$('#id_origin').val()+"&tostationcode="+$('#id_destination').val();
+                $.get(url, function (data)
+                {
+                    if (data.distance == 'N')
+                    {
+                        distance = 'Distance Not defined for the From Station and To Station';
+                        swal("","{% trans 'No distance found in distance master' %}","error");
+                    }
+                    else
+                    {
+                        distance = '';
+                    }
+                });
+            }
+            if ($("#id_invoice_partycode").val() > 0)
+            {
+                $('#id_calc_customer_rate').val(0);
+            }
+        }).trigger('change');
+
+        $('#id_loading_point').change(function(){
+            data = {'loading_point':$('#id_loading_point').val()}
+            $.get("{% url 'logisticsexport:get_depot_address' %}", data, function (data) {
+                if (data.status == 'success') {
+                  $("#id_loading_address").val(data.data);
+                }
+            });
+        }).trigger('change');
+
+        $('#id_offloading_point').change(function(){
+            data = {'loading_point':$('#id_offloading_point').val()}
+            $.get("{% url 'logisticsexport:get_depot_address' %}", data, function (data) {
+                if (data.status == 'success') {
+                  $("#id_offloading_address").val(data.data);
+                }
+            });
+        }).trigger('change');
+
+
+
+       $('#id_cargo_type').change(function(){
+           if ($(this).val() == '1')
+           {
+               $('#button_add_containers').show();
+               $('#id_packing_unit').val('').prop('disabled', true).change();
+               {#SET VALUE OF QUANTITY AS Total count of containers added in CONTAINER ENTRY screen#}
+               populateContainerDetails();
+               $('#id_quantity').prop('readonly', true).change();
+               $('#id_tonnage').prop('readonly', true).change();
+               $('#id_weight').val('');
+               $('#id_qty_per_truck').val('');
+               $('#id_no_of_loads').val('');
+
+           }
+           else  if ($(this).val() == '7')
+           {
+               $('#button_add_containers').show();
+               $('#id_packing_unit').val('').prop('disabled', true).change();
+               {#SET VALUE OF QUANTITY AS Total count of containers added in CONTAINER ENTRY screen#}
+               // populateContainerDetails();
+               $('#id_quantity').prop('readonly', true).change();
+               $('#id_tonnage').prop('readonly', true).change();
+               $('#id_weight').val('');
+               $('#id_qty_per_truck').val('');
+               $('#id_no_of_loads').val('');
+
+           }
+           else if($(this).val() == '0')
+           {
+               $('#button_add_containers').hide();
+
+           }
+           else if($(this).val() == '2')
+           {
+               $('#button_add_containers').hide();
+               $('#id_packing_unit').prop('disabled', false).change();
+               $('#id_quantity').prop('readonly', false).change();
+               $('#id_tonnage').prop('readonly', true).change();
+               $("#id_container_20").val('');
+               $("#id_container_40").val('');
+
+           }
+           else if($(this).val() == '3')
+           {
+               $('#button_add_containers').hide();
+
+           }
+           else if($(this).val() == '4')
+           {
+               $('#button_add_containers').hide();
+               $('#id_packing_unit').prop('disabled', true).change();
+               $('#id_quantity').val('').prop('readonly', true).change();
+               $('#id_tonnage').val('').prop('readonly', false).change();
+               $("#id_container_20").val('');
+               $("#id_container_40").val('');
+
+           }
+           else if($(this).val() == '6')
+           {
+               $('#button_add_containers').hide();
+               $('#id_averagelodingqty').prop('readonly', false).change();
+               $('#id_tonnage').prop('readonly', false).change();
+               $("#id_container_20").val('');
+               $("#id_container_40").val('');
+
+           }
+           else
+           {
+               $('#button_add_containers').hide();
+               $('#id_packing_unit').val('').prop('disabled', true).change();
+               $('#id_quantity').val('').prop('readonly', true).change();
+               $('#id_tonnage').prop('readonly', true).change();
+               $('#id_rate_per_ton_div').show();
+               $('#id_customer_rate_div').hide();
+           }
+           if ($("#id_invoice_partycode").val() > 0)
+           {
+                $('#id_calc_customer_rate').val(0);
+           }
+
+       }) .trigger('change');
+
+
+       $('#id_packing_unit').change(function() {
+            if ($('#id_cargo_type').val() == '2'){
+                $.get($(this).attr('data-url'), {unitcode: $(this).val()}, function (data) {
+                    $('#id_weight').val(data.weight).change();
+                    $('#id_qty_per_truck').val(data.qty_per_truck).change();
+                });
+            }
+       }).trigger("change");
+
+       $('#id_averagelodingqty, #id_tonnage').on('keyup change', function(){
+            if ($('#id_cargo_type').val() == '6') {
+                var averagelodingqty = parseFloat($('#id_averagelodingqty').val());
+                var tonnage = parseInt($('#id_tonnage').val());
+                var no_of_loads = 0;
+
+                if ($.isNumeric(tonnage) && $.isNumeric(averagelodingqty)) {
+                    no_of_loads = tonnage / averagelodingqty;
+                }
+                $('#id_no_of_loads').val(parseFloat(no_of_loads.toFixed(2)));
+            }
+            else ($("#id_invoice_partycode").val() > 0)
+            {
+                $('#id_calc_customer_rate').val(0);
+            }
+       }).trigger("change");
+
+       $('#id_quantity , #id_weight').on('keyup change', function(){
+            if ($('#id_cargo_type').val() == '2') {
+                var weight = parseFloat($('#id_weight').val());
+                var quantity = parseInt($('#id_quantity').val());
+                var tonnage = 0;
+                if ($.isNumeric(quantity) && $.isNumeric(weight)) {
+                    tonnage = weight * quantity / 1000;
+                }
+                $('#id_tonnage').val(parseFloat(tonnage.toFixed(2))).change();
+            }
+       }).trigger("change");
+
+       $('#id_quantity , #id_qty_per_truck').on('keyup change', function(){
+            if ($('#id_cargo_type').val() == '2') {
+                var quantity = parseFloat($('#id_quantity').val());
+                var qty_per_truck = parseInt($('#id_qty_per_truck').val());
+                var no_of_loads = 0;
+
+                if ($.isNumeric(quantity) && $.isNumeric(qty_per_truck)) {
+                    no_of_loads = quantity / qty_per_truck;
+                }
+                $('#id_no_of_loads').val(parseFloat(no_of_loads.toFixed(2)));
+            }
+       }).trigger("change");
+
+
+           <!--Containerised Entry -->
+
+
+
+       $('#button_add_containers').click(function(e){
+            var cargo_type_selected = $('#id_cargo_type').val();
+            if(cargo_type_selected =='1'){
+                e.preventDefault();
+                container_table = $('#container_table').DataTable({
+                    'paging'      : true,
+                    'lengthChange': false,
+                    'searching'   : false,
+                    'ordering'    : true,
+                    'info'        : true,
+                    'autoWidth'   : false,
+                    "processing": true,
+                    'rowId': 0,
+                    "serverSide": true,
+                    "pageLength": 10,
+                    "columnDefs": [ ],
+                    "ajax": $(this).attr('data-url')+"?orderreference="+$(this).attr('data-orderreference')
+                });
+
+                var orderdestination = $('#id_destination').val();
+                var orderdestinationdepot = $('#id_offloading_point').val();
+                var commodity = $('#id_commodity').val();
+                $('#id_created_tostation').val(orderdestination);
+                $('#created_tostation_depot').val(orderdestinationdepot);
+                $('#id_comodity_code').val(commodity);
+                $('#modal-container-entry').modal({
+                    backdrop: 'static',
+                    keyboard: false
+                });
+            }
+            else if(cargo_type_selected == '7'){
+                e.preventDefault();
+                container_unpack_table = $('#container_unpack_table').DataTable({
+                    'paging'      : true,
+                    'lengthChange': false,
+                    'searching'   : false,
+                    'ordering'    : true,
+                    'info'        : true,
+                    'autoWidth'   : false,
+                    "processing": true,
+                    'rowId': 0,
+                    "serverSide": true,
+                    "pageLength": 10,
+                    "columnDefs": [ ],
+                    "ajax": $(this).attr('data-url-unpacked')+"?orderreference="+$(this).attr('data-orderreference')
+                });
+                var orderdestination = $('#id_destination').val();
+                var orderdestinationdepot = $('#id_offloading_point').val();
+                var commodity = $('#id_commodity').val();
+                $('#id_created_tostation_unpack').val(orderdestination);
+                $('#created_tostation_depot_unpack').val(orderdestinationdepot);
+                $('#id_comodity_code_unpack').val(commodity);
+                $('#modal-container-entry-unpacked .list-error').html('');
+                $('#modal-container-entry-unpacked').modal({
+                    backdrop: 'static',
+                    keyboard: false
+                });
+            }
+       });
+
+       $('.close_container').click(function(e){
+            container_table.clear().destroy();
+       });
+
+       $('#container_cancel').on('click',function(){
+            $('.container_fields').val('').change();
+            $('#container_order_number').val('NEW');
+            $('#container_reefer_temp').val('N/A');
+            $('#weightinkg').val('N');
+            $('#container-form input:checkbox').iCheck('uncheck');
+            $('#container_action_type').val('I');
+            $('#container_slno').val('0');
+            SELECTED_CONTAINER_ENTRY = "";
+            $('#container_table tbody tr').removeClass('bg-active-row');
+       });
+
+       $('#container_table').on('click', 'tbody tr', function() {
+            $('.alert-boxes').hide();
+          const this_row = $(this);
+          this_row.siblings().removeClass('bg-active-row');
+          this_row.addClass('bg-active-row');
+          SELECTED_CONTAINER_ENTRY = this_row.attr("id");
+          $('#modal-container-entry .list-error').html("");
+          $('.list-error').hide();
+
+       });
+
+       $('#dropoffatdestination').on('ifChanged',function() {
+            if(this.checked) {
+                var orderdestinationsoc = $('#id_created_tostation').val();
+                var orderdestinationdepotsoc = $('#created_tostation_depot').val();
+                $('#empty_dropoff').val(orderdestinationsoc).prop('disabled', true);
+                var url = "{% url 'logisticsorder:get-depot' %}?depot="+orderdestinationdepotsoc;
+                $.get(url, function (data) {
+                    $('#empty_depot').empty().append(data.option_depot_html);
+                });
+                $('#empty_depot').val(orderdestinationdepotsoc).prop('disabled', true).change();
+            }
+            else{
+                $('#empty_dropoff').val('').prop('disabled', false).change();
+                $('#empty_depot').val('').prop('disabled', false).change();
+            }
+       });
+
+       $('#soc').on('ifChanged',function() {
+            if(this.checked) {
+                var orderdestinationsoc = $('#id_created_tostation').val();
+                var orderdestinationdepotsoc = $('#created_tostation_depot').val();
+                $('#empty_dropoff').val(orderdestinationsoc).prop('disabled', true);
+                var url = "{% url 'logisticsorder:get-depot' %}?depot="+orderdestinationdepotsoc;
+                $.get(url, function (data) {
+                    $('#empty_depot').empty().append(data.option_depot_html);
+                });
+                $('#empty_depot').val(orderdestinationdepotsoc).prop('disabled', true).change();
+            }
+            else{
+                $('#empty_dropoff').val('').prop('disabled', false).change();
+                $('#empty_depot').val('').prop('disabled', false).change();
+            }
+       });
+
+
+       $('#place_holder').on('ifChanged',function() {
+            if(this.checked) {
+              $('#container_no').val('CONTAINER NO').prop('readonly', true).change();
+              // $('#container_type').val('CONTAINER TYPE').prop('disabled', true).change();
+            }
+            else{
+              $('#container_no').val('').prop('readonly', false).change();
+              // $('#container_type').val('').prop('disabled', false).change();
+            }
+       });
+
+
+       $('#container-form input:checkbox').on('ifChanged',function() {
+            if($(this).is(":checked")) {
+                $(this).val('Y');
+            }
+            else{
+                $(this).val('N');
+            }
+       });
+
+
+       $('#weightinkg').on('change',function()
+       {
+            var container_tare = $('#container_tare').val().replace(",",".");
+            var container_net_weight = $('#container_net_weight').val();
+            var gross_weight = 0;
+            if($('#weightinkg').val()=='N')
+            {
+                quantity_in_kg = 1;
+                if ($.isNumeric( container_tare ) && $.isNumeric( container_net_weight ))
+                {
+                    gross_weight = parseFloat(container_tare) + parseFloat((container_net_weight)/quantity_in_kg);
+                }
+                $('#container_gross_weight').val(parseFloat(gross_weight.toFixed(2))).change();
+            }
+            else
+            {
+                quantity_in_kg = 1000;
+                if ($.isNumeric( container_tare ) && $.isNumeric( container_net_weight ))
+                {
+                    gross_weight = parseFloat(container_tare) + parseFloat((container_net_weight)/quantity_in_kg);
+                }
+                $('#container_gross_weight').val(parseFloat(gross_weight.toFixed(2))).change();
+            }
+       }).trigger("change");
+
+
+       $('#container_tare , #container_net_weight').on('keyup change', function(){
+            var container_tare = $('#container_tare').val().replace(",",".");
+            var container_net_weight = $('#container_net_weight').val();
+            var gross_weight = 0;
+
+            $('#weightinkg').on('change',function()
+            {
+                if($('#weightinkg').val()=='N')
+                {
+                    quantity_in_kg = 1;
+                }
+                else
+                {
+                    quantity_in_kg = 1000;
+                }
+            }).trigger("change");
+            if ($.isNumeric( container_tare ) && $.isNumeric( container_net_weight ))
+            {
+                gross_weight = parseFloat(container_tare) + parseFloat((container_net_weight)/quantity_in_kg);
+            }
+            $('#container_gross_weight').val(parseFloat(gross_weight.toFixed(2))).change();
+       }).trigger("change");
+
+
+       $('#container_gross_weight').change(function(){
+            if ($(this).val() <= 15){
+                $('#container_load_type').val('CO-LOAD');
+            }
+            else{
+                $('#container_load_type').val('FULL-LOAD');
+            }
+       }).trigger("change");
+
+       $('#container_type').change(function () {
+            var container_tare = $(this).find(":selected").attr('data-container-tare');
+            $('#container_tare').val(container_tare).change();
+       }).trigger("change");
+
+
+       $('#empty_dropoff').change(function(){
+
+            $.get($(this).attr('data-url'), {location_code:$(this).val(),origin:'true',containerised:'true'},function(data){
+                $('#empty_depot').html(data.options_html);
+                if (container_edit_depot != '') {
+                 $('#empty_depot').val(container_edit_depot);
+                }
+                container_edit_depot = '';
+            });
+
+       });
+
+
+       function populateContainerDetails()
+       {
+            var button_add_containers = $('#button_add_containers');
+            var url = button_add_containers.attr('data-details-url');
+            var parameters = {orderreference: button_add_containers.attr('data-orderreference')};
+            $.get(url,parameters , function(data){
+                $("#id_container_20").val(data.container_20);
+                $("#id_container_40").val(data.container_40);
+                $("#id_quantity").val(data.quantity);
+                $("#id_tonnage").val(data.tonnage);
+            });
+       }
+
+
+       $('#container-form').submit(function(e){
+            e.preventDefault();
+            var url = $(this).attr('data-url');
+            var orderreference = $(this).attr('data-orderreference');
+            $('#modal-container-entry .list-error').html("");
+            var formData= new FormData($('#container-form')[0]);
+            $('#container_save').prop('disabled', true);
+            $('#empty_dropoff').prop('disabled', false);
+            $('#empty_depot').prop('disabled', false);
+            $.post($(this).attr('action'), $.param($(this).serializeArray()),function(data){
+                $('#container_save').prop('disabled', false);
+                $('.list-error').show();
+                if (data.status=='success')
+                {
+                    container_table.ajax.url(url+"?orderreference="+orderreference).load();
+                    $('#container_cancel').click();
+                    const success_message ="<li class='has-success'><strong><i class='fa fa-check'></i><span>&nbsp;"+data.message+"</strong></li>";
+                    $('#modal-container-entry .list-error').append(success_message);
+                    SELECTED_CONTAINER_ENTRY = "";
+                    $('#container_table tbody tr').removeClass('bg-active-row');
+                    populateContainerDetails();
+                }
+                else if(data.status == 'failure')
+                {
+                    $.each(data.message, function(index, element) {
+                     const error_message ="<li class='has-error'><strong><i class='fa fa-times-circle-o'></i><span class='error-message'>&nbsp;"+element[0]+"</span></strong></li>";
+                    $('#modal-container-entry .list-error').append(error_message);
+                    });
+                }
+                else if(data.status == 'exception')
+                {
+                     const error_message =`<li class='has-warning'><strong><i class='fa fa-times-circle-o'></i><span class='error-message'>&nbsp;${data.message}</span></strong></li>`;
+                    $('#modal-container-entry .list-error').append(error_message);
+                }
+
+            });
+       });
+
+
+       $('.close-alert').click(function(e){
+          e.preventDefault();
+          $(this).parent().hide();
+       });
+       var container_edit_depot = '';
+       $('#container_edit').click(function(e){
+            $('.alert-boxes').hide();
+            if(SELECTED_CONTAINER_ENTRY == "") {
+                e.preventDefault();
+                showalert("{% trans 'Select a Container first!!!' %}", 'danger');
+            }
+            else
+            {
+                var parameters = { slno:SELECTED_CONTAINER_ENTRY, orderreference:$(this).attr('data-orderreference')};
+                $.get($(this).attr('data-url'), parameters, function(data){
+                    $('#empty_dropoff').val(data.dropoffcode).change();
+                    {#Empty Dropoff is populated first so that empty depot can be populated in the beginning and its value can be set.#}
+                    $('#container_order_number').val('EDIT');
+                    $('#container_type').val(data.containertypecode).change();
+                    $('#container_net_weight').val(data.commodityweight);
+                    $('#container_no').val(data.containerreference);
+                    $('#container_seal_no').val(data.containerseal);
+                    $('#container_reefer_temp').val(data.reefertemperature);
+                    $('#container_remarks').val(data.containerremarks);
+                    $('#container_grounding_reference').val(data.groundinginstruction);
+                    $('#container_validity_date').val(data.validitydate);
+                    $('#genset_required').iCheck((data.gensetrequired == 'Y') ? 'check': 'uncheck');
+                    $('#fuel_to_be_supplied').iCheck((data.fueltobesupplied == 'Y') ? 'check': 'uncheck');
+                    $('#dropoffatdestination').iCheck((data.dropoffatdestination == 'Y') ? 'check': 'uncheck');
+                    $('#soc').iCheck((data.shipperownedcontainer == 'Y') ? 'check': 'uncheck');
+                    $('#place_holder').iCheck((data.placeholdercontainer == 'Y') ? 'check': 'uncheck');
+                    $('#container_action_type').val('E');
+                    $('#container_slno').val(data.slno);
+                    $('#container_gross_weight').val(data.grossweight);
+                    $('#container_load_type').val(data.loadtype);
+                    $('#weightinkg').val(data.weightinkg);
+                    container_edit_depot = data.dropoffdepot;
+                });
+
+            }
+       });
+
+
+       $('#container_delete').click(function(e){
+            $('.alert-boxes').hide();
+            if(SELECTED_CONTAINER_ENTRY == "") {
+                e.preventDefault();
+                showalert("{% trans 'Select a Container first!!!' %}", 'danger');
+            }
+            else
+            {
+                var csrfmiddlewaretoken = $('#container-form input[name=csrfmiddlewaretoken]').val();
+                var  orderreference = $(this).attr('data-orderreference');
+                var datatable_url = $('#container-form').attr('data-url');
+                var parameters = {
+                    csrfmiddlewaretoken: csrfmiddlewaretoken,
+                    orderreference: orderreference,
+                    slno:SELECTED_CONTAINER_ENTRY };
+                $('#container_delete').prop('disabled', true);
+                $.post($(this).attr('data-url'), parameters,function(data){
+                    $('#container_delete').prop('disabled', false);
+                    SELECTED_CONTAINER_ENTRY = "";
+                    if(data.status == 'success'){
+                        container_table.ajax.url(datatable_url+"?orderreference="+orderreference).load();
+                        populateContainerDetails();
+                        $('#container_cancel').click();
+                    }
+                    else if (data.status == 'fail'){
+                        $('#container_table tbody tr').removeClass('bg-active-row');
+                        showalert("{% trans 'The selected container has been deleted already' %}", 'danger');
+                    }
+
+                });
+
+
+            }
+       });
+
+
+       $("#container_export").click(function (e) {
+            var export_url = $(this).attr('data-url')+"?order_reference="+$(this).attr('data-orderreference')+"";
+            window.location.assign(export_url);
+       });
+
+       // container unpack
+        $('.close_container_unpack').click(function(e){
+            container_unpack_table.clear().destroy();
+        });
+        $('#container_unpack_cancel').on('click',function(){
+            $('.container_fields').val('').change();
+            $('#container_unpack_order_number').val('NEW');
+            $('#unpack_container_reefer_temp').val('N/A');
+            $('#unpack_weightinkg').val('N');
+            $('#container_unpack-form input:checkbox').iCheck('uncheck');
+            $('#container_unpack_action_type').val('I');
+            $('#container_unpack_slno').val('0');
+            SELECTED_CONTAINER_UNPACK_ENTRY = "";
+            $('#container_table tbody tr').removeClass('bg-active-row');
+        });
+
+        $('#container_unpack_table').on('click', 'tbody tr', function() {
+            $('.alert-boxes').hide();
+          const this_row = $(this);
+          this_row.siblings().removeClass('bg-active-row');
+          this_row.addClass('bg-active-row');
+          SELECTED_CONTAINER_UNPACK_ENTRY = this_row.attr("id");
+          $('#modal-container-entry-unpacked .list-error').html("");
+          $('.list-error').hide();
+
+        });
+
+        $('#container_unpack_type').change(function () {
+            var containerunpack_tare = $(this).find(":selected").attr('data-container-tare');
+            $('#container_unpack_tare').val(containerunpack_tare).change();
+        }).trigger("change");
+        $("#container_unpack_packingname").change(function(e){
+            var unitwt = $(this).find(":selected").attr('data-unit_weightinkg');
+            $('#container_unpack_unit_weight').val(unitwt).change();
+        });
+
+
+        $('#container_unpack_tare , #container_unpack_net_weight').on('keyup change', function(){
+            var container_unpack_tare = $('#container_unpack_tare').val().replace(",",".");
+            var container_unpack_net_weight = $('#container_unpack_net_weight').val();
+            var gross_weight = 0;
+
+            // $('#weightinkg').on('change',function()
+            // {
+            //     if($('#weightinkg').val()=='N')
+            //     {
+            //         quantity_in_kg = 1;
+            //     }
+            //     else
+            //     {
+            //         quantity_in_kg = 1000;
+            //     }
+            // }).trigger("change");
+            quantity_in_kg = 1; // default metric ton  option to select kg currenty
+            if ($.isNumeric( container_unpack_tare ) && $.isNumeric( container_unpack_net_weight ))
+            {
+                gross_weight = parseFloat(container_unpack_tare) + parseFloat((container_unpack_net_weight)/quantity_in_kg);
+            }
+            $('#container_unpack_gross_weight').val(parseFloat(gross_weight.toFixed(2))).change();
+        }).trigger("change");
+
+        $('#container_unpack_qty , #container_unpack_unit_weight').on('keyup change', function(){
+            if ($('#id_cargo_type').val() == '7') {
+                var weight = parseFloat($('#container_unpack_unit_weight').val());
+                var quantity = parseInt($('#container_unpack_qty').val());
+                var tonnage = 0;
+                if ($.isNumeric(quantity) && $.isNumeric(weight)) {
+                    tonnage = weight * quantity / 1000;
+                }
+                $('#container_unpack_net_weight').val(parseFloat(tonnage.toFixed(2))).change();
+            }
+        }).trigger("change");
+
+        $('#container_unpack_gross_weight').change(function(){
+            if ($(this).val() <= 15){
+                $('#container_unpack_load_type').val('CO-LOAD');
+            }
+            else{
+                $('#container_unpack_load_type').val('FULL-LOAD');
+            }
+        }).trigger("change");
+
+        $('#unpack_place_holder').on('ifChanged',function() {
+            if(this.checked) {
+              $('#unpack_container_no').val('CONTAINER NO').prop('readonly', true).change();
+              // $('#container_type').val('CONTAINER TYPE').prop('disabled', true).change();
+            }
+            else{
+              $('#unpack_container_no').val('').prop('readonly', false).change();
+              // $('#container_type').val('').prop('disabled', false).change();
+            }
+        });
+
+        $('#unpack_soc').on('ifChanged',function() {
+            if(this.checked) {
+                var orderdestinationsoc = $('#id_created_tostation_unpack').val();
+                var orderdestinationdepotsoc = $('#created_tostation_depot_unpack').val();
+                $('#unpack_empty_dropoff').val(orderdestinationsoc).prop('disabled', true);
+                var url = "{% url 'logisticsorder:get-depot' %}?depot="+orderdestinationdepotsoc;
+                $.get(url, function (data) {
+                    $('#unpack_empty_depot').empty().append(data.option_depot_html);
+                });
+                $('#unpack_empty_depot').val(orderdestinationdepotsoc).prop('disabled', true).change();
+            }
+            else{
+                $('#unpack_empty_dropoff').val('').prop('disabled', false).change();
+                $('#unpack_empty_depot').val('').prop('disabled', false).change();
+            }
+        });
+
+        $('#unpack_dropoffatdestination').on('ifChanged',function() {
+            if(this.checked) {
+                var orderdestinationsoc = $('#id_created_tostation_unpack').val();
+                var orderdestinationdepotsoc = $('#created_tostation_depot_unpack').val();
+                $('#unpack_empty_dropoff').val(orderdestinationsoc).prop('disabled', true);
+                var url = "{% url 'logisticsorder:get-depot' %}?depot="+orderdestinationdepotsoc;
+                $.get(url, function (data) {
+                    $('#unpack_empty_depot').empty().append(data.option_depot_html);
+                });
+                $('#unpack_empty_depot').val(orderdestinationdepotsoc).prop('disabled', true).change();
+            }
+            else{
+                $('#unpack_empty_dropoff').val('').prop('disabled', false).change();
+                $('#unpack_empty_depot').val('').prop('disabled', false).change();
+            }
+        });
+
+        $('#unpack_empty_dropoff').change(function(){
+
+            $.get($(this).attr('data-url'), {location_code:$(this).val(),origin:'true',containerised:'true'},function(data){
+                $('#unpack_empty_depot').html(data.options_html);
+                if (container_unpack_edit_depot != '') {
+                  $('#unpack_empty_depot').val(container_unpack_edit_depot);
+                }
+                container_unpack_edit_depot = '';
+            });
+
+        });
+
+        $('#container_unpack-form input:checkbox').on('ifChanged',function() {
+            if($(this).is(":checked")) {
+                $(this).val('Y');
+            }
+            else{
+                $(this).val('N');
+            }
+        });
+
+        $('#container_unpack-form').submit(function(e){
+            e.preventDefault();
+            $('#modal-container-entry-unpacked .list-error').html('');
+            var url = $(this).attr('data-url');
+            var orderreference = $(this).attr('data-orderreference');
+            $('#modal-container-entry-unpacked .list-error').html("");
+            var formData= new FormData($('#container_unpack-form')[0]);
+            $('#container_unpack_save').prop('disabled', true);
+            $('#unpack_empty_dropoff').prop('disabled', false);
+            $('#unpack_empty_depot').prop('disabled', false);
+            console.log($.param($(this).serializeArray()))
+            $.post($(this).attr('action'), $.param($(this).serializeArray()),function(data){
+                $('#container_unpack_save').prop('disabled', false);
+                $('.list-error').show();
+                if (data.status=='success')
+                {
+                    container_unpack_table.ajax.url(url+"?orderreference="+orderreference).load();
+                    $('#container_unpack_cancel').click();
+                    const success_message ="<li class='has-success'><strong><i class='fa fa-check'></i><span>&nbsp;"+data.message+"</strong></li>";
+                    $('#modal-container-entry-unpacked .list-error').append(success_message);
+                    SELECTED_CONTAINER_UNPACK_ENTRY = "";
+                    $('#container_unpack_table tbody tr').removeClass('bg-active-row');
+                    populateContainerDetails();
+                }
+                else if(data.status == 'failure')
+                {
+                    $.each(data.message, function(index, element) {
+                     const error_message ="<li class='has-error'><strong><i class='fa fa-times-circle-o'></i><span class='error-message'>&nbsp;"+element[0]+"</span></strong></li>";
+                    $('#modal-container-entry-unpacked .list-error').append(error_message);
+                    });
+                }
+                else if(data.status == 'exception')
+                {
+                     const error_message =`<li class='has-warning'><strong><i class='fa fa-times-circle-o'></i><span class='error-message'>&nbsp;${data.message}</span></strong></li>`;
+                    $('#modal-container-entry-unpacked .list-error').append(error_message);
+                }
+
+            });
+        });
+
+        var container_unpack_edit_depot = '';
+        $('#container_unpack_edit').click(function(e){
+            $('.list-error').hide();
+            $('.alert-boxes').hide();
+            $('#modal-container-entry-unpacked .list-error').html('');
+            if(SELECTED_CONTAINER_UNPACK_ENTRY == "") {
+                e.preventDefault();
+                $('.list-error').show();
+                // showalert("{% trans 'Select a Container first!!!' %}", 'danger');
+                const error_message ="<li class='has-error'><strong><i class='fa fa-times-circle-o'></i><span>&nbsp;Select a Container first!!!</strong></li>";
+                $('#modal-container-entry-unpacked .list-error').append(error_message);
+            }
+            else
+            {
+                var parameters = { slno:SELECTED_CONTAINER_UNPACK_ENTRY, orderreference:$(this).attr('data-orderreference')};
+                $.get($(this).attr('data-url'), parameters, function(data){
+                    $('#unpack_empty_dropoff').val(data.dropoffcode).change();
+                    {#Empty Dropoff is populated first so that empty depot can be populated in the beginning and its value can be set.#}
+                    $('#container_unpack_order_number').val('EDIT');
+                    $('#container_unpack_type').val(data.containertypecode).change();
+                    $('#container_unpack_net_weight').val(data.commodityweight);
+                    $('#unpack_container_no').val(data.containerreference);
+                    $('#unpack_container_seal_no').val(data.containerseal);
+                    $('#unpack_container_reefer_temp').val(data.reefertemperature);
+                    $('#container_unpack_remarks').val(data.containerremarks);
+                    $('#container_unpack_grounding_reference').val(data.groundinginstruction);
+                    $('#container_unpack_validity_date').val(data.validitydate);
+                    $('#unpack_genset_required').iCheck((data.gensetrequired == 'Y') ? 'check': 'uncheck');
+                    $('#unpack_fuel_to_be_supplied').iCheck((data.fueltobesupplied == 'Y') ? 'check': 'uncheck');
+                    $('#unpack_dropoffatdestination').iCheck((data.dropoffatdestination == 'Y') ? 'check': 'uncheck');
+                    $('#unpack_soc').iCheck((data.shipperownedcontainer == 'Y') ? 'check': 'uncheck');
+                    $('#unpack_place_holder').iCheck((data.placeholdercontainer == 'Y') ? 'check': 'uncheck');
+                    $('#container_unpack_action_type').val('E');
+                    $('#container_unpack_slno').val(data.slno);
+                    $('#container_unpack_gross_weight').val(data.grossweight);
+                    $('#container_unpack_load_type').val(data.loadtype);
+                    $('#unpack_weightinkg').val(data.weightinkg);
+                    container_unpack_edit_depot = data.dropoffdepot;
+                    $('#container_unpack_packingname').val(data.packingname).change();
+                    $('#container_unpack_qty').val(data.bbquantity).change();
+                });
+
+            }
+        });
+
+        $('#container_unpack_delete').click(function(e){
+            $('.alert-boxes').hide();
+            $('.list-error').show();
+            if(SELECTED_CONTAINER_UNPACK_ENTRY == "") {
+                // e.preventDefault();
+                // showalert("{% trans 'Select a Container first!!!' %}", 'danger');
+                const error_message ="<li class='has-error'><strong><i class='fa fa-times-circle-o'></i><span>&nbsp;Select a Container first!!!</strong></li>";
+                $('#modal-container-entry-unpacked .list-error').append(error_message);
+                e.preventDefault();
+            }
+            else
+            {
+                var csrfmiddlewaretoken = $('#container-form input[name=csrfmiddlewaretoken]').val();
+                var orderreference = $(this).attr('data-orderreference');
+                var datatable_url = $('#container-form').attr('data-url');
+                var parameters = {
+                    csrfmiddlewaretoken: csrfmiddlewaretoken,
+                    orderreference: orderreference,
+                    slno:SELECTED_CONTAINER_UNPACK_ENTRY };
+                $('#container_unpack_delete').prop('disabled', true);
+                $.post($(this).attr('data-url'), parameters,function(data){
+                    $('#container_unpack_delete').prop('disabled', false);
+                    SELECTED_CONTAINER_ENTRY = "";
+                    if(data.status == 'success'){
+                        container_unpack_table.ajax.url(datatable_url+"?orderreference="+orderreference).load();
+                        populateContainerDetails();
+                        $('#container_unpack_cancel').click();
+                    }
+                    else if (data.status == 'fail'){
+                        $('#container_unpack_table tbody tr').removeClass('bg-active-row');
+                        // showalert("{% trans 'The selected container has been deleted already' %}", 'danger');
+                        const error_message ="<li class='has-error'><strong><i class='fa fa-times-circle-o'></i><span>&nbsp;The selected container has been deleted already</strong></li>";
+                        $('#modal-container-entry-unpacked .list-error').append(error_message);
+                    }
+
+                });
+
+
+            }
+        });
+
+        $("#container_unpack_export").click(function (e) {
+            var export_url = $(this).attr('data-url')+"?order_reference="+$(this).attr('data-orderreference')+"";
+            window.location.assign(export_url);
+        });
+        //  end unpack
+
+       $('#id_shippingline_name').change(function(){
+            $.ajaxSetup({async: false });
+            $.get($(this).attr('data-url'), {shipplingline_code:$(this).val(),str_type:'SHIPPINGLINE'},function(data){
+                console.log(data)
+                $('#id_vessel').html(data.options_html);
+            });
+            $.ajaxSetup({async: true});
+            $('#id_vessel').val("{{ form.vessel.value|default_if_none:'' }}");
+       }).trigger('change');
+
+
+       $('#id_vessel').change(function(){
+            $.ajaxSetup({async: false });
+            $.get($(this).attr('data-url'), {vessel_code:$(this).val(),str_type:'VESSEL'},function(data){
+                console.log(data)
+                $('#id_voyage').html(data.options_html);
+            });
+            $.ajaxSetup({async: true});
+            $('#id_voyage').val("{{ form.voyage.value|default_if_none:'' }}");
+            $("#id_etd").datepicker('setDate', new Date("{{ form.etd.value|default_if_none:'' }}"));
+            $("#id_actual_departure").datepicker('setDate', new Date("{{ form.actual_departure.value|default_if_none:'' }}"));
+            $("#id_stack_closing").datepicker('setDate', new Date("{{ form.stack_closing.value|default_if_none:'' }}"));
+            $("#id_booking_received").datepicker('setDate', new Date("{{form.booking_received.value|default_if_none:'' }}"));
+            $("#id_clearance_deadline").datepicker('setDate', new Date("{{form.clearance_deadline.value|default_if_none:'' }}"));
+            $("#id_submitted_fa").datepicker('setDate', new Date("{{form.submitted_fa.value|default_if_none:'' }}"));
+            $("#id_cleared_agent_name").datepicker('setDate', new Date("{{form.cleared_agent_name.value|default_if_none:'' }}"));
+            $("#id_nde_tax").datepicker('setDate', new Date("{{form.nde_tax.value|default_if_none:'' }}"));
+
+       }).trigger('change');
+
+
+       $('#id_voyage').change(function(){
+            $.ajaxSetup({async: false });
+            $.get($(this).attr('data-url'), {str_type:'VOYAGE',
+                                voyage_ref:$(this).val(),customercode:$('#id_customercode').val()},function(data){
+                console.log(data)
+                // $('#id_voyage').html(data.options_html);
+                if(data.status==1){
+                    $("#id_etd").datepicker('setDate', new Date(data.voyage.vesseletd));
+                    $("#id_actual_departure").datepicker('setDate', new Date(data.voyage.actualdeparture));
+                    $("#id_stack_closing").datepicker('setDate', new Date(data.voyage.stackclosing));
+                    $("#id_clearance_deadline").datepicker('setDate', new Date(data.voyage.exportclearancedeadline));
+                    //$("#id_demmurage_starts").datepicker('setDate', new Date(data.voyage.demmuragestarts));
+                    //$("#id_port_storage_starts").datepicker('setDate', new Date(data.voyage.shippingportstorage));
+                    $("#id_allowed_free_days").val(data.voyage.allowedfreedays)
+                    if(data.voyage.dem_error!=''){
+                        showalert(data.voyage.dem_error, 'danger');
+                    }
+
+                }
+                else{
+                    $("#id_etd,#id_actual_departure,#id_stack_closing,\
+                    ,#id_clearance_deadline,").datepicker('setDate', null);;
+                }
+            });
+            $.ajaxSetup({async: true});
+       });
+    })
+
+</script>
+
+{% endblock %}
