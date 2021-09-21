@@ -1,0 +1,38 @@
+{% load i18n %}
+<div class="modal fade" id="modal_kudumba_update">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">{% trans "Update Kudumba Date" %}</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal" action="#">
+                    {% csrf_token %}
+                    <!-- <label class="boldlabel" id = "id_amountonapproval">  </label>
+                    <p>{% trans "Do you want to" %} {% trans "approve " %}{% trans "the order?" %}</p> -->
+                    <div class="form-group">
+                        <label class="col-sm-5 control-label"> Kudumba </label>
+                         <div class="col-sm-7">
+                            <div class="input-group date w-75">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input type="text" id="kudu_date"  class="updates form-control pull-right" data-date-format="dd/mm/yyyy" required="" >
+
+                            </div>
+                            <br>&nbsp;
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default pull-left close_search_entity" data-dismiss="modal">{% trans 'Close' %}</button>
+                <button type="button" id="id_kudumba_updte" class="btn btn-success"><i class="fa fa-check-circle-o"></i>{% trans 'Done' %}</button>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>
